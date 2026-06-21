@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">可愛物品訂購小舖</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons (使用 Light 細線體) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- 引入芫荽體 (Iansui) -->
+    <style>
+        @font-face {
+            font-family: 'Iansui';
+            src: url('https://cdn.jsdelivr.net/gh/ButTaiwan/iansui@master/Iansui-Regular.ttf') format('truetype');
+            font-display: swap;
+        }
+    </style>
+    
+    <!-- 定義 Tailwind 自訂樣式，打造水彩大自然風格 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Iansui', 'system-ui', 'sans-serif'],
+                        cursive: ['Iansui', 'sans-serif'],
+                    },
+                    colors: {
+                        nature: {
+                            sky: '#e0f2fe',      // 水彩天空藍
+                            sky_dark: '#bae6fd', // 深一點的天空藍
+                            cloud: '#ffffff',    // 雲朵白
+                            grass: '#dcfce7',    // 水彩嫩草綠
+                            grass_dark: '#86efac',// 深草綠
+                            forest: '#166534',   // 森林深綠 (用於重要文字)
+                            flower_y: '#fef08a', // 小花黃
+                            flower_o: '#fdba74', // 小花橘
+                            flower_b: '#7dd3fc', // 小花藍
+                            text: '#334155',     // 柔和的深藍灰 (主要文字)
+                            text_light: '#64748b'// 淺藍灰 (次要文字)
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer components {
+            /* 水彩風半透明按鈕 */
+            .btn-story {
+                @apply px-4 py-2 rounded-full font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_15px_-3px_rgba(0,0,0,0.1)] active:translate-y-0 active:shadow-sm flex items-center justify-center text-sm backdrop-blur-sm;
+            }
+            /* 水彩風毛玻璃卡片 */
+            .card-story {
+                @apply bg-white/70 backdrop-blur-md border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(134,239,172,0.2)] hover:bg-white/90 rounded-3xl transition-all duration-500 overflow-hidden;
+            }
+            /* 柔和輸入框 */
+            .input-story {
+                @apply w-full px-3 py-2 bg-white/60 border-2 border-white focus:bg-white rounded-2xl focus:outline-none focus:border-nature-sky_dark focus:ring-4 focus:ring-nature-sky/40 transition-all text-nature-text placeholder-nature-text_light/60 font-medium text-sm shadow-sm;
+            }
+        }
+
+        body { 
+            /* 模擬圖片中的水彩漸層：上天空、中白雲、下草地 */
+            background-color: #e0f2fe;
+            background-image: linear-gradient(180deg, #e0f2fe 0%, #ffffff 50%, #f0fdf4 85%, #dcfce7 100%);
+            background-attachment: fixed;
+            background-size: cover;
+        }
+        
+        .image-container { overflow: hidden; border-radius: 1.5rem 1.5rem 0 0; }
+        .image-container img { transition: transform 0.8s ease; }
+        .image-container:hover img { transform: scale(1.05) rotate(1deg); }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #86efac; }
+
+        /* 特殊排版：模擬小字+大字 */
+        .story-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .story-header-sub {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-bottom: -6px; 
+            z-index: 10;
+        }
+
+        /* 水彩暈染動畫裝飾 */
+        .watercolor-blob {
+            position: absolute;
+            filter: blur(40px);
+            opacity: 0.4;
+            z-index: -1;
+            border-radius: 50%;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(20px, -20px) scale(1.1); }
+        }
+    </style>
+</head>
+<body class="text-nature-text antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- 背景裝飾元素 (模擬圖片中的白雲與小花) -->
+    <div class="fixed top-10 left-10 text-white opacity-60 -z-10"><i class="ph-fill ph-cloud text-8xl"></i></div>
+    <div class="fixed top-32 right-20 text-white opacity-40 -z-10"><i class="ph-fill ph-cloud text-9xl"></i></div>
+    <div class="fixed bottom-10 left-20 text-nature-flower_y opacity-70 -z-10"><i class="ph-fill ph-flower text-4xl"></i></div>
+    <div class="fixed bottom-24 right-32 text-nature-flower_o opacity-60 -z-10"><i class="ph-fill ph-flower text-3xl"></i></div>
+    <div class="fixed bottom-16 right-16 text-nature-flower_b opacity-80 -z-10"><i class="ph-fill ph-flower text-5xl"></i></div>
+    
+    <!-- 背景水彩暈染球 -->
+    <div class="watercolor-blob bg-sky-200 w-96 h-96 top-0 left-0"></div>
+    <div class="watercolor-blob bg-green-100 w-96 h-96 bottom-0 right-0" style="animation-delay: -5s;"></div>
+
+    <!-- 導覽列 -->
+    <nav class="bg-white/40 border-b border-white/60 sticky top-0 z-40 backdrop-blur-lg shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center space-x-3 group cursor-pointer">
+                    <div class="bg-white/80 p-2 rounded-2xl text-nature-sky_dark shadow-sm transition-transform group-hover:-translate-y-1 duration-500 border border-white">
+                        <i class="ph-light ph-cloud-sun text-3xl"></i>
+                    </div>
+                    <!-- 網站標題與編輯按鈕 -->
+                    <div class="flex items-center">
+                        <div class="story-header">
+                            <span class="story-header-sub">Spring Meadow</span>
+                            <span id="navTitle" class="font-cursive text-2xl font-bold text-nature-forest tracking-wide">可愛物品訂購小舖</span>
+                        </div>
+                        <button id="editTitleBtn" onclick="openTitleModal()" class="hidden ml-3 text-nature-text_light hover:text-nature-sky_dark transition-colors bg-white/50 p-1 rounded-full shadow-sm" title="修改網站名稱">
+                            <i class="ph-light ph-pencil-simple text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <button id="authBtn" onclick="toggleAuth()" class="bg-white/50 hover:bg-white text-nature-text_light hover:text-nature-forest px-4 py-2 rounded-2xl flex items-center space-x-1.5 text-xs font-semibold transition-all border border-white shadow-sm">
+                        <i class="ph-light ph-user text-lg" id="authIcon"></i>
+                        <span id="authText">花園管理員</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容區 -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full relative z-10">
+        
+        <!-- 控制列 -->
+        <div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+            
+            <!-- 搜尋框 -->
+            <div class="relative w-full md:w-96 shrink-0 group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="ph-light ph-magnifying-glass text-nature-text_light text-lg group-focus-within:text-nature-sky_dark transition-colors"></i>
+                </div>
+                <input type="text" id="searchInput" oninput="handleSearch()" class="input-story pl-11 rounded-full py-2.5" placeholder="在草地上尋找物品...">
+            </div>
+
+            <!-- 管理員工具列 -->
+            <div id="adminToolbar" class="hidden flex flex-wrap items-center bg-white/60 backdrop-blur-md border border-white p-2 rounded-full shadow-sm w-full md:w-auto gap-2">
+                <span class="text-nature-forest font-bold mx-3 hidden md:flex items-center whitespace-nowrap text-xs">
+                    <i class="ph-light ph-flower-tulip text-nature-flower_o mr-1.5 text-lg"></i>
+                    花園管理區
+                </span>
+                <div class="flex space-x-2 w-full md:w-auto">
+                    <button onclick="openOrdersModal()" class="btn-story bg-nature-sky/50 text-sky-700 hover:bg-nature-sky border border-white px-4 py-1.5 flex-1 md:flex-none space-x-1.5">
+                        <i class="ph-light ph-receipt text-base"></i>
+                        <span class="whitespace-nowrap">查看訂單</span>
+                    </button>
+                    <button onclick="openItemModal()" class="btn-story bg-nature-grass/50 text-green-700 hover:bg-nature-grass border border-white px-4 py-1.5 flex-1 md:flex-none space-x-1.5">
+                        <i class="ph-light ph-plus-circle text-base"></i>
+                        <span class="whitespace-nowrap">種植新商品</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 載入中動畫 -->
+        <div id="loadingIndicator" class="flex justify-center items-center py-24">
+            <div class="text-center animate-pulse bg-white/50 p-8 rounded-3xl backdrop-blur-sm border border-white">
+                <i class="ph-light ph-wind text-5xl text-nature-sky_dark mb-3"></i>
+                <p class="font-cursive text-2xl text-nature-forest">微風正在吹來商品...</p>
+            </div>
+        </div>
+
+        <!-- 物品網格 -->
+        <div id="itemsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        
+        <!-- 無資料提示 -->
+        <div id="emptyState" class="hidden text-center py-24">
+            <div class="inline-block bg-white/50 p-10 rounded-3xl backdrop-blur-sm border border-white shadow-sm">
+                <i class="ph-light ph-leaf text-6xl mb-3 text-nature-grass_dark opacity-80"></i>
+                <p class="font-cursive text-3xl text-nature-forest">這片草地目前空空的喔！</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white/30 backdrop-blur-sm border-t border-white py-6 mt-auto relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-xs text-nature-text_light">
+            <div class="story-header mb-3 md:mb-0">
+                <span class="story-header-sub">From the Meadow</span>
+                <span id="footerTitle" class="font-cursive text-xl text-nature-forest">可愛物品訂購小舖</span>
+            </div>
+            <div class="font-medium tracking-wide flex items-center bg-white/50 px-4 py-1.5 rounded-full border border-white">
+                &copy; 2026 Watercolor Meadow. <i class="ph-fill ph-flower text-nature-flower_y ml-2 text-sm"></i>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= 互動視窗 (Modals) ================= -->
+
+    <!-- 修改網站標題視窗 -->
+    <div id="titleEditModal" class="fixed inset-0 bg-slate-900/20 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-6 max-w-sm w-full relative transform transition-all">
+            <div class="story-header mb-5">
+                <span class="story-header-sub">Rename</span>
+                <h2 class="font-cursive text-3xl text-nature-forest flex items-center">
+                    <i class="ph-light ph-text-t text-nature-sky_dark mr-2"></i> 修改花園名稱
+                </h2>
+            </div>
+            <div class="space-y-5">
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1.5">幫這片草地取個新名字：</label>
+                    <input type="text" id="editWebsiteTitle" class="input-story font-cursive text-xl">
+                </div>
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button onclick="closeModal('titleEditModal')" class="btn-story bg-white border border-slate-200 text-nature-text hover:bg-slate-50">取消</button>
+                    <button onclick="saveWebsiteTitle()" class="btn-story bg-nature-grass_dark text-green-900 hover:bg-[#6ce096]">
+                        掛上新招牌
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登入視窗 -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/20 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-6 max-w-sm w-full relative">
+            <button onclick="closeModal('loginModal')" class="absolute top-3 right-3 text-nature-text_light hover:text-rose-400 bg-white p-1 rounded-full shadow-sm transition-colors">
+                <i class="ph-light ph-x text-xl"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="mx-auto w-14 h-14 bg-nature-sky/50 border border-white rounded-2xl flex items-center justify-center mb-3 text-sky-600 shadow-sm rotate-3">
+                    <i class="ph-light ph-key text-2xl"></i>
+                </div>
+                <div class="story-header items-center">
+                    <span class="story-header-sub">Manager Login</span>
+                    <h2 class="font-cursive text-3xl text-nature-forest">管理員入口</h2>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="loginUsername" class="input-story" placeholder="帳號 (預設: admin)">
+                <input type="password" id="loginPassword" class="input-story" placeholder="密碼 (預設: admin123)">
+                <button onclick="checkLogin()" class="btn-story w-full bg-nature-sky_dark text-sky-900 hover:bg-[#a5dbf9] py-2.5 mt-2 text-sm shadow-sm">
+                    進入花園 <i id="loginSpinner" class="ph-light ph-spinner animate-spin text-lg ml-2 hidden"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/編輯物品視窗 -->
+    <div id="itemModal" class="fixed inset-0 bg-slate-900/20 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="card-story p-6 sm:p-8 max-w-xl w-full my-auto relative">
+            <button onclick="closeModal('itemModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors">
+                <i class="ph-light ph-x text-xl"></i>
+            </button>
+            <div class="story-header mb-6">
+                <span class="story-header-sub">Planting Seed</span>
+                <h2 id="itemModalTitle" class="font-cursive text-3xl text-nature-forest flex items-center">
+                    <i class="ph-light ph-potted-plant text-nature-grass_dark mr-2"></i> 種植新商品囉！
+                </h2>
+            </div>
+            
+            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
+                <input type="hidden" id="itemId">
+                
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">商品名稱 <span class="text-rose-400">*</span></label>
+                    <input type="text" id="itemTitle" required class="input-story" placeholder="給它取個好名字...">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold text-nature-text_light text-xs mb-1">價格 (NT$) <span class="text-rose-400">*</span></label>
+                        <input type="number" id="itemPrice" min="0" required class="input-story font-bold text-rose-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-nature-text_light text-xs mb-1">數量 <span class="text-rose-400">*</span></label>
+                        <input type="number" id="itemStock" min="0" required class="input-story font-bold text-sky-600">
+                    </div>
+                </div>
+
+                <div class="bg-white/40 border border-white shadow-inner p-4 rounded-2xl">
+                    <label class="block font-semibold text-nature-text mb-1.5 flex items-center text-xs">
+                        <i class="ph-light ph-image mr-1.5 text-base text-nature-flower_b"></i> Google 雲端照片網址 <span class="text-rose-400 ml-1">*</span>
+                    </label>
+                    <input type="url" id="itemImageUrl" required placeholder="請貼上分享連結..." class="input-story bg-white text-xs">
+                    <p class="text-[11px] text-nature-text_light mt-2 flex items-center"><i class="ph-fill ph-info text-nature-sky_dark mr-1"></i> 請確認檔案權限已設為「知道連結的人皆可查看」</p>
+                </div>
+                
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">商品說明</label>
+                    <textarea id="itemDesc" rows="3" class="input-story text-sm" placeholder="簡單介紹一下這個寶貝..."></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t border-white/50">
+                    <button type="button" onclick="closeModal('itemModal')" class="btn-story bg-white border border-slate-200 text-nature-text hover:bg-slate-50">取消</button>
+                    <button type="submit" class="btn-story bg-nature-grass_dark text-green-900 hover:bg-[#6ce096] flex items-center shadow-sm">
+                        <i class="ph-light ph-check-circle mr-1.5 text-lg"></i> 確認種植
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 顧客訂購表單視窗 -->
+    <div id="orderModal" class="fixed inset-0 bg-slate-900/20 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="card-story p-6 sm:p-8 max-w-sm w-full my-auto relative">
+            <button onclick="closeModal('orderModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors">
+                <i class="ph-light ph-x text-xl"></i>
+            </button>
+            <div class="story-header mb-6">
+                <span class="story-header-sub">Harvesting</span>
+                <h2 class="font-cursive text-3xl text-nature-forest flex items-center">
+                    <i class="ph-light ph-shopping-cart text-nature-flower_o mr-2"></i> 帶我回家吧！
+                </h2>
+            </div>
+            
+            <div class="bg-white/60 border border-white shadow-sm p-4 rounded-2xl mb-5 relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-nature-flower_y/30"><i class="ph-fill ph-flower text-6xl"></i></div>
+                <h3 id="orderItemName" class="font-bold text-nature-forest text-lg mb-0.5 relative z-10"></h3>
+                <p class="font-medium text-nature-text_light text-xs relative z-10">單價: NT$ <span id="orderItemPrice" class="text-rose-500 font-bold"></span></p>
+                <p class="font-medium text-nature-text_light text-xs mt-0.5 relative z-10">目前剩下: <span id="orderItemMaxStock" class="text-sky-600 font-bold"></span> 個</p>
+            </div>
+
+            <form id="orderForm" onsubmit="submitOrder(event)" class="space-y-4">
+                <input type="hidden" id="orderItemId">
+                <input type="hidden" id="orderItemPriceValue">
+                
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">需要的數量 <span class="text-rose-400">*</span></label>
+                    <input type="number" id="orderQty" min="1" required class="input-story text-lg text-center text-sky-600 font-bold bg-white" oninput="calculateTotal()">
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">您的姓名 <span class="text-rose-400">*</span></label>
+                    <input type="text" id="orderBuyerName" required class="input-story bg-white" placeholder="怎麼稱呼您呢？">
+                </div>
+                
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">聯絡電話 <span class="text-rose-400">*</span></label>
+                    <input type="tel" id="orderBuyerPhone" required class="input-story bg-white" placeholder="讓我們能聯繫到您...">
+                </div>
+
+                <div class="pt-4 pb-2 border-t border-white/50 flex justify-between items-end">
+                    <span class="text-nature-text_light font-semibold text-xs">總金額：</span>
+                    <span class="text-2xl font-bold text-rose-500 font-cursive tracking-wide">NT$ <span id="orderTotalAmount">0</span></span>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeModal('orderModal')" class="btn-story bg-white border border-slate-200 text-nature-text hover:bg-slate-50">再想想</button>
+                    <button type="submit" class="btn-story bg-rose-300 text-rose-900 hover:bg-rose-400 flex justify-center items-center shadow-sm">
+                        <i class="ph-light ph-check-fat mr-1.5 text-lg"></i> 確認購買
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 訂單管理清單視窗 -->
+    <div id="ordersListModal" class="fixed inset-0 bg-slate-900/20 z-[60] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-6 sm:p-8 max-w-3xl w-full max-h-[85vh] flex flex-col relative">
+            <button onclick="closeModal('ordersListModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors z-10"><i class="ph-light ph-x text-xl"></i></button>
+            <div class="story-header mb-5 pb-3 border-b border-white/50">
+                <span class="story-header-sub">Order Records</span>
+                <h2 class="font-cursive text-3xl text-nature-forest flex items-center">
+                    <i class="ph-light ph-clipboard-text text-nature-sky_dark mr-2"></i> 大家的購買紀錄
+                </h2>
+            </div>
+            <div class="overflow-y-auto flex-grow custom-scrollbar rounded-2xl bg-white/40 border border-white shadow-inner p-2">
+                <table class="min-w-full divide-y divide-white">
+                    <thead class="sticky top-0 bg-white/80 backdrop-blur-sm rounded-t-xl z-10">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tl-xl">下單時間</th>
+                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">商品</th>
+                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">買家資訊</th>
+                            <th class="px-4 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider">數量</th>
+                            <th class="px-4 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tr-xl">金額</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersListBody" class="divide-y divide-white font-medium text-nature-text">
+                        <!-- Orders will be injected here -->
+                    </tbody>
+                </table>
+                <div id="noOrdersMsg" class="hidden text-center py-16 text-nature-text_light font-medium text-sm">
+                    <i class="ph-light ph-wind text-5xl mb-2 block opacity-40"></i> 紀錄清單空空的，跟風一樣乾淨。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除確認視窗 -->
+    <div id="deleteModal" class="fixed inset-0 bg-slate-900/20 z-[70] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-8 max-w-sm w-full text-center">
+            <div class="mx-auto w-16 h-16 bg-rose-100 border border-white rounded-full flex items-center justify-center mb-4 text-rose-400 shadow-sm">
+                <i class="ph-light ph-trash text-3xl"></i>
+            </div>
+            <h2 class="font-cursive text-3xl mb-2 text-nature-forest">真的要移除嗎？</h2>
+            <p class="text-nature-text_light text-xs mb-6 font-medium bg-white/50 p-3 rounded-xl border border-white">商品會從草地上消失，<br>但過去的訂單紀錄會被保留下來喔。</p>
+            <input type="hidden" id="deleteId">
+            <div class="flex justify-center space-x-3">
+                <button onclick="closeModal('deleteModal')" class="btn-story flex-1 bg-white border border-slate-200 text-nature-text hover:bg-slate-50">先不要</button>
+                <button onclick="confirmDelete()" class="btn-story flex-1 bg-rose-400 text-white hover:bg-rose-500 shadow-sm">確認移除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 吐司通知 -->
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-32 opacity-0 transition-all duration-500 z-[100] flex items-center bg-white/90 backdrop-blur-md border border-white text-nature-forest px-5 py-3 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] pointer-events-none">
+        <i id="toastIcon" class="ph-fill ph-check-circle text-nature-grass_dark text-2xl mr-2"></i>
+        <span id="toastMessage" class="font-bold text-sm">成功完成！</span>
+    </div>
+
+    <!-- ================= JavaScript / Firebase 邏輯 ================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 系統變數
+        let app, auth, db, currentUser;
+        
+        // 依賴環境變數提供 appId 和 firebase config
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-storybook-app';
+        let firebaseConfig;
+        
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                apiKey: "demo-key", authDomain: "demo.firebaseapp.com", projectId: "demo-project"
+            };
+        } catch(e) { console.warn("Firebase config parse error, using demo config."); }
+
+        // 應用程式狀態
+        let isAdmin = false;
+        let itemsData = [];
+        let ordersData = [];
+        let searchQuery = '';
+        let globalSettings = { title: '可愛物品訂購小舖' }; 
+
+        // --- 初始化系統 ---
+        const initSystem = async () => {
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // 強制登入授權
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (user) {
+                        setupRealtimeListeners();
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase 初始化失敗:", error);
+                document.getElementById('loadingIndicator').innerHTML = `<p class="text-rose-400 font-bold text-sm bg-white/80 p-4 rounded-xl border border-white shadow-sm">系統似乎睡著了，請重新整理頁面看看！</p>`;
+            }
+        };
+
+        // --- 設定資料庫即時監聽 ---
+        const setupRealtimeListeners = () => {
+            if (!currentUser) return;
+
+            // 監聽全域設定
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), (docSnap) => {
+                if (docSnap.exists()) {
+                    globalSettings = docSnap.data();
+                } else {
+                    globalSettings = { title: '可愛物品訂購小舖' };
+                }
+                updateGlobalUI();
+            });
+
+            // 監聽物品清單
+            const itemsRef = collection(db, 'artifacts', appId, 'public', 'data', 'items');
+            onSnapshot(itemsRef, (snapshot) => {
+                itemsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                renderItems();
+            }, (error) => {
+                console.error("Error fetching items:", error);
+            });
+
+            const accountsRef = collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
+            onSnapshot(accountsRef, async (snapshot) => {
+                if (snapshot.empty && isAdmin) {}
+            }, (error) => { console.error("Account error:", error); });
+
+            // 監聽訂單
+            const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+            onSnapshot(ordersRef, (snapshot) => {
+                ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if(isAdmin) renderOrdersList();
+            }, (error) => { console.error("Orders fetch error:", error); });
+        };
+
+        // --- 更新全域 UI ---
+        const updateGlobalUI = () => {
+            document.title = globalSettings.title || '可愛物品訂購小舖';
+            const navTitleEl = document.getElementById('navTitle');
+            const footerTitleEl = document.getElementById('footerTitle');
+            if(navTitleEl) navTitleEl.innerText = globalSettings.title || '可愛物品訂購小舖';
+            if(footerTitleEl) footerTitleEl.innerText = globalSettings.title || '可愛物品訂購小舖';
+        };
+
+        const openTitleModal = () => {
+            document.getElementById('editWebsiteTitle').value = globalSettings.title || '可愛物品訂購小舖';
+            document.getElementById('titleEditModal').classList.remove('hidden');
+        };
+
+        const saveWebsiteTitle = async () => {
+            const newTitle = document.getElementById('editWebsiteTitle').value.trim();
+            if (!newTitle) return;
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { title: newTitle }, { merge: true });
+                closeModal('titleEditModal');
+                showToast("花園有了新名字囉！");
+            } catch (e) { 
+                showToast("哎呀，招牌掛不上去", "error"); 
+            }
+        };
+
+        const formatImageUrl = (url) => {
+            if (!url) return '';
+            const match = url.match(/(?:drive\.google\.com\/file\/d\/|drive\.google\.com\/open\?id=)([-a-zA-Z0-9_]+)/);
+            if (match && match[1]) {
+                return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+            }
+            return url; 
+        };
+
+        // --- 渲染物品列表 ---
+        const renderItems = () => {
+            const grid = document.getElementById('itemsGrid');
+            grid.innerHTML = '';
+            
+            let filteredData = itemsData;
+            if (searchQuery) {
+                filteredData = itemsData.filter(item => 
+                    item.title.toLowerCase().includes(searchQuery) || 
+                    (item.desc && item.desc.toLowerCase().includes(searchQuery))
+                );
+            }
+
+            if (filteredData.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+            } else {
+                document.getElementById('emptyState').classList.add('hidden');
+                
+                const sortedData = [...filteredData].sort((a, b) => {
+                    const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                    const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                sortedData.forEach(item => {
+                    const isOutOfStock = parseInt(item.stock) <= 0;
+                    const stockBadge = isOutOfStock 
+                        ? `<span class="bg-rose-100 text-rose-600 border border-white px-2.5 py-1 rounded-full text-[11px] font-bold absolute top-3 left-3 shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-prohibit mr-1"></i> 已售完</span>`
+                        : `<span class="bg-green-100 text-green-700 border border-white px-2.5 py-1 rounded-full text-[11px] font-bold absolute top-3 left-3 shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-check-circle mr-1"></i> 庫存: ${item.stock}</span>`;
+
+                    const orderBtnClass = isOutOfStock 
+                        ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-white" 
+                        : "btn-story bg-nature-sky_dark text-sky-900 hover:bg-[#a5dbf9] border border-white shadow-sm";
+
+                    let adminButtons = isAdmin ? `
+                        <div class="absolute top-3 right-3 flex space-x-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <button onclick="editItem('${item.id}')" class="bg-white/90 text-amber-500 p-2 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-white hover:bg-white transition-all hover:scale-110" title="編輯"><i class="ph-light ph-pencil-simple text-base"></i></button>
+                            <button onclick="promptDelete('${item.id}')" class="bg-white/90 text-rose-400 p-2 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-white hover:bg-white transition-all hover:scale-110" title="刪除"><i class="ph-light ph-trash text-base"></i></button>
+                        </div>` : '';
+
+                    const card = document.createElement('div');
+                    card.className = "card-story relative group flex flex-col";
+                    card.innerHTML = `
+                        ${adminButtons}
+                        <div class="image-container relative w-full pt-[85%] bg-white border-b border-white">
+                            <img src="${formatImageUrl(item.imageUrl)}" 
+                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCA4MDAgNjAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmYWZjIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJDYXZlYXQsIGN1cnNpdmUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjOTRhM2I4IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7nhKHniYfmlpnkvpvoiaw8L3RleHQ+PC9zdmc+';" 
+                                 class="absolute top-0 left-0 w-full h-full object-cover">
+                            ${stockBadge}
+                        </div>
+                        <div class="p-5 flex-grow flex flex-col bg-white/40">
+                            <h3 class="font-bold text-lg text-nature-forest line-clamp-1 mb-1">${item.title}</h3>
+                            <div class="text-nature-text_light font-medium text-xs line-clamp-2 mb-3 flex-grow">${item.desc || '這是一件隱藏在草叢中的物品...'}</div>
+                            
+                            <div class="flex justify-between items-end mt-auto pt-4 border-t border-white">
+                                <div>
+                                    <p class="text-[11px] text-nature-text_light font-semibold mb-0.5">花費</p>
+                                    <p class="text-xl font-bold text-rose-500 font-cursive tracking-wider">NT$ ${Number(item.price).toLocaleString()}</p>
+                                </div>
+                                <button onclick="openOrderModal('${item.id}')" ${isOutOfStock ? 'disabled' : ''} class="px-4 py-2 rounded-full font-bold flex items-center text-xs transition-all duration-300 ${orderBtnClass}">
+                                    ${isOutOfStock ? '被買光了' : '我要帶走'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+        };
+
+        const handleSearch = () => { 
+            searchQuery = document.getElementById('searchInput').value.trim().toLowerCase(); 
+            renderItems(); 
+        };
+
+        const saveItem = async (event) => {
+            event.preventDefault();
+            if (!currentUser || !isAdmin) return;
+
+            const id = document.getElementById('itemId').value;
+            const payload = {
+                title: document.getElementById('itemTitle').value.trim(),
+                price: Number(document.getElementById('itemPrice').value),
+                stock: Number(document.getElementById('itemStock').value),
+                imageUrl: document.getElementById('itemImageUrl').value.trim(),
+                desc: document.getElementById('itemDesc').value.trim()
+            };
+
+            closeModal('itemModal');
+            try {
+                if (id) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'items', id), payload);
+                    showToast("商品資訊已更新！");
+                } else {
+                    payload.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'items'), payload);
+                    showToast("新的植物發芽長大囉！");
+                }
+            } catch (error) { 
+                console.error(error);
+                showToast("哎呀，種植失敗了，請重試！", "error"); 
+            }
+        };
+
+        const editItem = (id) => {
+            const item = itemsData.find(p => p.id === id);
+            if (!item) return;
+
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemTitle').value = item.title;
+            document.getElementById('itemPrice').value = item.price;
+            document.getElementById('itemStock').value = item.stock;
+            document.getElementById('itemImageUrl').value = item.imageUrl;
+            document.getElementById('itemDesc').value = item.desc || '';
+            
+            document.getElementById('itemModalTitle').innerHTML = '<i class="ph-light ph-plant text-amber-500 mr-2"></i> 編輯商品資訊';
+            document.getElementById('itemModal').classList.remove('hidden');
+        };
+
+        const promptDelete = (id) => { 
+            document.getElementById('deleteId').value = id; 
+            document.getElementById('deleteModal').classList.remove('hidden'); 
+        };
+
+        const confirmDelete = async () => {
+            if (!currentUser || !isAdmin) return;
+            const id = document.getElementById('deleteId').value;
+            closeModal('deleteModal');
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'items', id)); 
+                showToast("商品已經從草地上移除了。");
+            } catch (error) { 
+                console.error(error);
+                showToast("移除失敗，請再試一次。", "error"); 
+            }
+        };
+
+        const openOrderModal = (id) => {
+            const item = itemsData.find(p => p.id === id);
+            if (!item || item.stock <= 0) return;
+
+            document.getElementById('orderItemId').value = item.id;
+            document.getElementById('orderItemName').innerText = item.title;
+            document.getElementById('orderItemPrice').innerText = Number(item.price).toLocaleString();
+            document.getElementById('orderItemPriceValue').value = item.price;
+            document.getElementById('orderItemMaxStock').innerText = item.stock;
+            
+            const qtyInput = document.getElementById('orderQty');
+            qtyInput.value = 1;
+            qtyInput.max = item.stock;
+            
+            document.getElementById('orderBuyerName').value = '';
+            document.getElementById('orderBuyerPhone').value = '';
+            
+            calculateTotal();
+            document.getElementById('orderModal').classList.remove('hidden');
+        };
+
+        const calculateTotal = () => {
+            const price = Number(document.getElementById('orderItemPriceValue').value || 0);
+            const qty = Number(document.getElementById('orderQty').value || 0);
+            const max = Number(document.getElementById('orderItemMaxStock').innerText || 0);
+            
+            if (qty > max) document.getElementById('orderQty').value = max;
+            if (qty < 1) document.getElementById('orderQty').value = 1;
+            
+            const finalQty = Number(document.getElementById('orderQty').value || 0);
+            document.getElementById('orderTotalAmount').innerText = (price * finalQty).toLocaleString();
+        };
+
+        const submitOrder = async (event) => {
+            event.preventDefault();
+            if (!currentUser) return;
+
+            const itemId = document.getElementById('orderItemId').value;
+            const item = itemsData.find(p => p.id === itemId);
+            const orderQty = Number(document.getElementById('orderQty').value);
+            
+            if (!item || orderQty <= 0 || orderQty > item.stock) {
+                showToast("數量怪怪的，請檢查一下喔！", "error");
+                return;
+            }
+
+            const buyerName = document.getElementById('orderBuyerName').value.trim();
+            const buyerPhone = document.getElementById('orderBuyerPhone').value.trim();
+            const totalAmount = item.price * orderQty;
+
+            const orderPayload = {
+                itemId: item.id,
+                itemName: item.title,
+                buyerName: buyerName,
+                buyerPhone: buyerPhone,
+                quantity: orderQty,
+                unitPrice: item.price,
+                totalAmount: totalAmount,
+                createdAt: serverTimestamp()
+            };
+
+            closeModal('orderModal');
+            
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), orderPayload);
+                const newStock = item.stock - orderQty;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'items', itemId), {
+                    stock: newStock
+                });
+
+                showToast(`購買成功！一共是 NT$ ${totalAmount.toLocaleString()}。`);
+            } catch (error) {
+                console.error("Order failed:", error);
+                showToast("結帳時出了點錯，請稍後再試。", "error");
+            }
+        };
+
+        const renderOrdersList = () => {
+            const tbody = document.getElementById('ordersListBody');
+            const noMsg = document.getElementById('noOrdersMsg');
+            
+            if (ordersData.length === 0) {
+                tbody.innerHTML = '';
+                noMsg.classList.remove('hidden');
+                return;
+            }
+            
+            noMsg.classList.add('hidden');
+            
+            const sortedOrders = [...ordersData].sort((a, b) => {
+                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return timeB - timeA;
+            });
+
+            tbody.innerHTML = sortedOrders.map(order => {
+                const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString('zh-TW', {
+                    year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+                }) : '剛剛';
+
+                return `
+                <tr class="hover:bg-white/50 transition-colors">
+                    <td class="px-4 py-3 whitespace-nowrap text-xs text-nature-text_light">${dateStr}</td>
+                    <td class="px-4 py-3 text-xs font-bold text-nature-text">${order.itemName}</td>
+                    <td class="px-4 py-3 text-xs font-medium text-nature-text_light">
+                        <i class="ph-light ph-user text-nature-sky_dark"></i> ${order.buyerName} <br>
+                        <span class="text-[10px] opacity-70 ml-3.5">${order.buyerPhone}</span>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-xs text-right font-bold text-sky-600">${order.quantity}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-rose-500 font-cursive tracking-wide">NT$ ${Number(order.totalAmount).toLocaleString()}</td>
+                </tr>`;
+            }).join('');
+        };
+
+        const toggleAuth = () => {
+            if (isAdmin) { 
+                isAdmin = false; 
+                updateAuthUI(); 
+                showToast("管理員已下班，掰掰。"); 
+            } else { 
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginModal').classList.remove('hidden'); 
+            }
+        };
+
+        const checkLogin = async () => {
+            const u = document.getElementById('loginUsername').value;
+            const p = document.getElementById('loginPassword').value;
+            
+            if (!u || !p) { 
+                showToast("請輸入完整的帳號密碼喔。", "error"); 
+                return; 
+            }
+
+            if (u === 'admin' && p === 'admin123') {
+                isAdmin = true; 
+                closeModal('loginModal'); 
+                updateAuthUI(); 
+                showToast("歡迎回到花園，管理員！");
+            } else { 
+                showToast("密碼好像不對喔！", "error"); 
+            }
+        };
+
+        const updateAuthUI = () => {
+            document.getElementById('authText').innerText = isAdmin ? "管理員下班" : "花園管理員";
+            document.getElementById('authIcon').className = isAdmin ? "ph-light ph-sign-out text-rose-400 text-lg" : "ph-light ph-user text-lg";
+            document.getElementById('adminToolbar').classList.toggle('hidden', !isAdmin);
+            document.getElementById('editTitleBtn').classList.toggle('hidden', !isAdmin);
+            
+            renderItems();
+            if (isAdmin) renderOrdersList();
+        };
+
+        const closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        
+        const openItemModal = () => { 
+            document.getElementById('itemForm').reset(); 
+            document.getElementById('itemId').value = ''; 
+            document.getElementById('itemModalTitle').innerHTML = '<i class="ph-light ph-potted-plant text-nature-grass_dark mr-2"></i> 種植新商品囉！'; 
+            document.getElementById('itemModal').classList.remove('hidden'); 
+        };
+
+        const openOrdersModal = () => {
+            renderOrdersList();
+            document.getElementById('ordersListModal').classList.remove('hidden');
+        };
+
+        let toastTimeout;
+        const showToast = (msg, type = 'success') => {
+            document.getElementById('toastMessage').innerText = msg;
+            
+            const icon = document.getElementById('toastIcon');
+            if(type === 'success') {
+                icon.className = "ph-fill ph-check-circle text-nature-grass_dark text-2xl mr-2";
+            } else {
+                icon.className = "ph-fill ph-warning-circle text-rose-500 text-2xl mr-2";
+            }
+
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-32', 'opacity-0'); 
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            clearTimeout(toastTimeout); 
+            toastTimeout = setTimeout(() => { 
+                toast.classList.remove('translate-y-0', 'opacity-100'); 
+                toast.classList.add('translate-y-32', 'opacity-0'); 
+            }, 3000);
+        };
+
+        Object.assign(window, { 
+            toggleAuth, checkLogin, closeModal, 
+            openItemModal, editItem, saveItem, promptDelete, confirmDelete, 
+            openOrderModal, calculateTotal, submitOrder,
+            openOrdersModal, handleSearch,
+            openTitleModal, saveWebsiteTitle
+        });
+
+        initSystem();
+    </script>
+</body>
+</html>
