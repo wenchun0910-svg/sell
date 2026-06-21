@@ -439,7 +439,10 @@
         // 系統變數
         let app, auth, db, currentUser;
         
-        // 依賴環境變數提供 appId 和 firebase config
+        // 依賴環境變數提供 appId (確保相容性)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-storybook-app';
+        
+        // 直接寫入您的專屬 Firebase 設定
   const firebaseConfig = {
   apiKey: "AIzaSyCXZpd2BzuDe-jaKA2sClziAjnDhZLAWdM",
   authDomain: "sell-7cf41.firebaseapp.com",
@@ -449,9 +452,8 @@
   appId: "1:495635985538:web:f54ac5c70a3331e071f09b"
 };
 
-
-        
-
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
         // 應用程式狀態
         let isAdmin = false;
@@ -897,4 +899,5 @@
         initSystem();
     </script>
 </body>
+</html>
 </html>
