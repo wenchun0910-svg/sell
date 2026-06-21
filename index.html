@@ -440,8 +440,17 @@
         let app, auth, db, currentUser;
         
         // 依賴環境變數提供 appId 和 firebase config
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-storybook-app';
-        let firebaseConfig;
+  const firebaseConfig = {
+  apiKey: "AIzaSyCXZpd2BzuDe-jaKA2sClziAjnDhZLAWdM",
+  authDomain: "sell-7cf41.firebaseapp.com",
+  projectId: "sell-7cf41",
+  storageBucket: "sell-7cf41.firebasestorage.app",
+  messagingSenderId: "495635985538",
+  appId: "1:495635985538:web:f54ac5c70a3331e071f09b"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
         
         try {
             firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
