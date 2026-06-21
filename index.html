@@ -296,12 +296,20 @@
                     </div>
                 </div>
 
-                <div class="bg-white/40 border border-white shadow-inner p-4 rounded-2xl">
-                    <label class="block font-semibold text-nature-text mb-1.5 flex items-center text-xs">
-                        <i class="ph-light ph-image mr-1.5 text-base text-nature-flower_b"></i> Google 雲端照片網址 <span class="text-rose-400 ml-1">*</span>
-                    </label>
-                    <input type="url" id="itemImageUrl" required placeholder="請貼上分享連結..." class="input-story bg-white text-xs">
-                    <p class="text-[11px] text-nature-text_light mt-2 flex items-center"><i class="ph-fill ph-info text-nature-sky_dark mr-1"></i> 請確認檔案權限已設為「知道連結的人皆可查看」</p>
+                <div class="bg-white/40 border border-white shadow-inner p-4 rounded-2xl space-y-3">
+                    <div>
+                        <label class="block font-semibold text-nature-text mb-1.5 flex items-center text-xs">
+                            <i class="ph-light ph-image mr-1.5 text-base text-nature-flower_b"></i> 1. 封面縮圖網址 <span class="text-rose-400 ml-1">*</span>
+                        </label>
+                        <input type="url" id="itemImageUrl" required placeholder="請貼上分享連結..." class="input-story bg-white text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-nature-text mb-1.5 flex items-center text-xs">
+                            <i class="ph-light ph-folder-open mr-1.5 text-base text-amber-500"></i> 2. 更多照片 (Google Drive 資料夾)
+                        </label>
+                        <input type="url" id="itemFolderUrl" placeholder="(選填) 讓大家點擊圖片可以看到更多照片..." class="input-story bg-white text-xs">
+                    </div>
+                    <p class="text-[11px] text-nature-text_light mt-2 flex items-center"><i class="ph-fill ph-info text-nature-sky_dark mr-1"></i> 請確認照片與資料夾權限皆已設為「知道連結的人皆可查看」</p>
                 </div>
                 
                 <div>
@@ -440,7 +448,7 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-storybook-app';
         
         // 您的專屬 Firebase 設定
-  const firebaseConfig = {
+   const firebaseConfig = {
   apiKey: "AIzaSyCXZpd2BzuDe-jaKA2sClziAjnDhZLAWdM",
   authDomain: "sell-7cf41.firebaseapp.com",
   projectId: "sell-7cf41",
@@ -448,9 +456,6 @@
   messagingSenderId: "495635985538",
   appId: "1:495635985538:web:f54ac5c70a3331e071f09b"
 };
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
 
         // 應用程式狀態
         let isAdmin = false;
@@ -593,20 +598,36 @@ const app = initializeApp(firebaseConfig);
 
                     let adminButtons = isAdmin ? `
                         <div class="absolute top-3 right-3 flex space-x-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                            <button onclick="editItem('${item.id}')" class="bg-white/90 text-amber-500 p-2 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-white hover:bg-white transition-all hover:scale-110" title="編輯"><i class="ph-light ph-pencil-simple text-base"></i></button>
-                            <button onclick="promptDelete('${item.id}')" class="bg-white/90 text-rose-400 p-2 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-white hover:bg-white transition-all hover:scale-110" title="刪除"><i class="ph-light ph-trash text-base"></i></button>
+                            <button onclick="editItem('${item.id}'); event.preventDefault();" class="bg-white/90 text-amber-500 p-2 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-white hover:bg-white transition-all hover:scale-110" title="編輯"><i class="ph-light ph-pencil-simple text-base"></i></button>
+                            <button onclick="promptDelete('${item.id}'); event.preventDefault();" class="bg-white/90 text-rose-400 p-2 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-white hover:bg-white transition-all hover:scale-110" title="刪除"><i class="ph-light ph-trash text-base"></i></button>
                         </div>` : '';
+
+                    let imgWrapperStart = `<div class="image-container relative w-full pt-[85%] bg-white border-b border-white group/img cursor-default">`;
+                    let imgWrapperEnd = `</div>`;
+                    let hoverOverlay = '';
+                    
+                    if (item.folderUrl) {
+                        imgWrapperStart = `<a href="${item.folderUrl}" target="_blank" class="image-container relative w-full pt-[85%] bg-white border-b border-white group/img cursor-pointer block">`;
+                        imgWrapperEnd = `</a>`;
+                        hoverOverlay = `
+                            <div class="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 z-10">
+                                <span class="bg-nature-sky_dark text-sky-900 px-4 py-2 rounded-full font-bold text-xs shadow-sm flex items-center">
+                                    <i class="ph-bold ph-images mr-1.5"></i> 查看更多照片
+                                </span>
+                            </div>`;
+                    }
 
                     const card = document.createElement('div');
                     card.className = "card-story relative group flex flex-col";
                     card.innerHTML = `
                         ${adminButtons}
-                        <div class="image-container relative w-full pt-[85%] bg-white border-b border-white">
+                        ${imgWrapperStart}
                             <img src="${formatImageUrl(item.imageUrl)}" 
                                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCA4MDAgNjAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmYWZjIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJDYXZlYXQsIGN1cnNpdmUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjOTRhM2I4IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7nhKHniYfmlpnkvpvoiaw8L3RleHQ+PC9zdmc+';" 
                                  class="absolute top-0 left-0 w-full h-full object-cover">
+                            ${hoverOverlay}
                             ${stockBadge}
-                        </div>
+                        ${imgWrapperEnd}
                         <div class="p-5 flex-grow flex flex-col bg-white/40">
                             <h3 class="font-bold text-lg text-nature-forest line-clamp-1 mb-1">${item.title}</h3>
                             <div class="text-nature-text_light font-medium text-xs line-clamp-2 mb-3 flex-grow">${item.desc || '這是一件隱藏在草叢中的物品...'}</div>
@@ -642,6 +663,7 @@ const app = initializeApp(firebaseConfig);
                 price: Number(document.getElementById('itemPrice').value),
                 stock: Number(document.getElementById('itemStock').value),
                 imageUrl: document.getElementById('itemImageUrl').value.trim(),
+                folderUrl: document.getElementById('itemFolderUrl').value.trim(),
                 desc: document.getElementById('itemDesc').value.trim()
             };
 
@@ -669,7 +691,8 @@ const app = initializeApp(firebaseConfig);
             document.getElementById('itemTitle').value = item.title;
             document.getElementById('itemPrice').value = item.price;
             document.getElementById('itemStock').value = item.stock;
-            document.getElementById('itemImageUrl').value = item.imageUrl;
+            document.getElementById('itemImageUrl').value = item.imageUrl || '';
+            document.getElementById('itemFolderUrl').value = item.folderUrl || '';
             document.getElementById('itemDesc').value = item.desc || '';
             
             document.getElementById('itemModalTitle').innerHTML = '<i class="ph-light ph-plant text-amber-500 mr-2"></i> 編輯商品資訊';
