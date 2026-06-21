@@ -8,14 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons (使用 Light 細線體) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- 引入芫荽體 (Iansui) -->
-    <style>
-        @font-face {
-            font-family: 'Iansui';
-            src: url('https://cdn.jsdelivr.net/gh/ButTaiwan/iansui@master/Iansui-Regular.ttf') format('truetype');
-            font-display: swap;
-        }
-    </style>
+    
+    <!-- 引入穩定的 Google Fonts: Klee One (芫荽體的基礎字體，風格一致且保證不破圖) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
     
     <!-- 定義 Tailwind 自訂樣式，打造水彩大自然風格 -->
     <script>
@@ -23,8 +20,8 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Iansui', 'system-ui', 'sans-serif'],
-                        cursive: ['Iansui', 'sans-serif'],
+                        sans: ['"Klee One"', 'system-ui', 'sans-serif'],
+                        cursive: ['"Klee One"', 'sans-serif'],
                     },
                     colors: {
                         nature: {
@@ -436,13 +433,13 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 系統變數
-        let app, auth, db, currentUser;
+        // 系統變數 (避免名稱與環境保留字 app 衝突，改用 firebaseApp)
+        let firebaseApp, auth, db, currentUser;
         
         // 依賴環境變數提供 appId (確保相容性)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-storybook-app';
         
-        // 直接寫入您的專屬 Firebase 設定
+        // 您的專屬 Firebase 設定
   const firebaseConfig = {
   apiKey: "AIzaSyCXZpd2BzuDe-jaKA2sClziAjnDhZLAWdM",
   authDomain: "sell-7cf41.firebaseapp.com",
@@ -465,9 +462,9 @@ const app = initializeApp(firebaseConfig);
         // --- 初始化系統 ---
         const initSystem = async () => {
             try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
+                firebaseApp = initializeApp(firebaseConfig);
+                auth = getAuth(firebaseApp);
+                db = getFirestore(firebaseApp);
 
                 // 強制登入授權
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -899,5 +896,4 @@ const app = initializeApp(firebaseConfig);
         initSystem();
     </script>
 </body>
-</html>
 </html>
