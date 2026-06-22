@@ -14,6 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
     
+    <!-- 引入 SheetJS 用於匯出 Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
     <!-- 定義 Tailwind 自訂樣式，打造水彩大自然風格 -->
     <script>
         tailwind.config = {
@@ -57,6 +60,10 @@
             .input-story {
                 @apply w-full px-3 py-2 bg-white/60 border-2 border-white focus:bg-white rounded-2xl focus:outline-none focus:border-nature-sky_dark focus:ring-4 focus:ring-nature-sky/40 transition-all text-nature-text placeholder-nature-text_light/60 font-medium text-sm shadow-sm;
             }
+            /* 結帳步驟卡片 */
+            .quest-step {
+                @apply bg-white/60 border border-white shadow-sm p-4 rounded-2xl relative;
+            }
         }
 
         body { 
@@ -76,7 +83,6 @@
         ::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #86efac; }
 
-        /* 特殊排版：模擬小字+大字 */
         .story-header {
             display: flex;
             flex-direction: column;
@@ -108,14 +114,13 @@
 </head>
 <body class="text-nature-text antialiased min-h-screen flex flex-col relative overflow-x-hidden">
 
-    <!-- 背景裝飾元素 (模擬圖片中的白雲與小花) -->
+    <!-- 背景裝飾元素 -->
     <div class="fixed top-10 left-10 text-white opacity-60 -z-10"><i class="ph-fill ph-cloud text-8xl"></i></div>
     <div class="fixed top-32 right-20 text-white opacity-40 -z-10"><i class="ph-fill ph-cloud text-9xl"></i></div>
     <div class="fixed bottom-10 left-20 text-nature-flower_y opacity-70 -z-10"><i class="ph-fill ph-flower text-4xl"></i></div>
     <div class="fixed bottom-24 right-32 text-nature-flower_o opacity-60 -z-10"><i class="ph-fill ph-flower text-3xl"></i></div>
     <div class="fixed bottom-16 right-16 text-nature-flower_b opacity-80 -z-10"><i class="ph-fill ph-flower text-5xl"></i></div>
     
-    <!-- 背景水彩暈染球 -->
     <div class="watercolor-blob bg-sky-200 w-96 h-96 top-0 left-0"></div>
     <div class="watercolor-blob bg-green-100 w-96 h-96 bottom-0 right-0" style="animation-delay: -5s;"></div>
 
@@ -124,58 +129,77 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
                 <div class="flex items-center space-x-3 group cursor-pointer">
-                    <div class="bg-white/80 p-2 rounded-2xl text-nature-sky_dark shadow-sm transition-transform group-hover:-translate-y-1 duration-500 border border-white">
-                        <i class="ph-light ph-cloud-sun text-3xl"></i>
+                    <div class="bg-white/80 p-2 rounded-2xl text-nature-sky_dark shadow-sm transition-transform group-hover:-translate-y-1 duration-500 border border-white flex items-center justify-center">
+                        <i class="ph-fill ph-storefront text-3xl text-rose-400 drop-shadow-sm"></i>
                     </div>
                     <!-- 網站標題與編輯按鈕 -->
                     <div class="flex items-center">
                         <div class="story-header">
-                            <span class="story-header-sub">Spring Meadow</span>
+                            <span class="story-header-sub">Online Shop</span>
                             <span id="navTitle" class="font-cursive text-2xl font-bold text-nature-forest tracking-wide">可愛物品訂購小舖</span>
                         </div>
-                        <button id="editTitleBtn" onclick="openTitleModal()" class="hidden ml-3 text-nature-text_light hover:text-nature-sky_dark transition-colors bg-white/50 p-1 rounded-full shadow-sm" title="修改網站名稱">
+                        <button id="editTitleBtn" onclick="openTitleModal()" class="hidden ml-3 text-nature-text_light hover:text-nature-sky_dark transition-colors bg-white/50 p-1 rounded-full shadow-sm" title="修改商店名稱">
                             <i class="ph-light ph-pencil-simple text-lg"></i>
                         </button>
                     </div>
                 </div>
-                <div>
-                    <button id="authBtn" onclick="toggleAuth()" class="bg-white/50 hover:bg-white text-nature-text_light hover:text-nature-forest px-4 py-2 rounded-2xl flex items-center space-x-1.5 text-xs font-semibold transition-all border border-white shadow-sm">
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <!-- 購物車按鈕 -->
+                    <button onclick="openCartModal()" class="relative text-nature-forest hover:text-rose-500 transition-colors p-2 flex items-center group">
+                        <i class="ph-light ph-shopping-cart text-3xl group-hover:scale-110 transition-transform"></i>
+                        <span id="cartBadge" class="absolute top-0 -right-1 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">0</span>
+                    </button>
+                    
+                    <button id="authBtn" onclick="toggleAuth()" class="bg-white/50 hover:bg-white text-nature-text_light hover:text-nature-forest px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl flex items-center space-x-1.5 text-xs font-semibold transition-all border border-white shadow-sm">
                         <i class="ph-light ph-user text-lg" id="authIcon"></i>
-                        <span id="authText">花園管理員</span>
+                        <span id="authText" class="hidden sm:inline">店長登入</span>
                     </button>
                 </div>
             </div>
         </div>
     </nav>
 
+    <!-- 任務檔期狀態橫幅 -->
+    <div id="missionBanner" class="bg-white/60 backdrop-blur-sm border-b border-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center text-sm font-bold">
+            <div class="flex items-center space-x-2">
+                <i id="missionIcon" class="ph-fill ph-clock text-amber-500 text-xl"></i>
+                <span id="missionStatusText" class="text-nature-text">載入任務狀態中...</span>
+            </div>
+        </div>
+    </div>
+
     <!-- 主要內容區 -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full relative z-10">
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full relative z-10">
         
         <!-- 控制列 -->
-        <div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             
             <!-- 搜尋框 -->
             <div class="relative w-full md:w-96 shrink-0 group">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="ph-light ph-magnifying-glass text-nature-text_light text-lg group-focus-within:text-nature-sky_dark transition-colors"></i>
                 </div>
-                <input type="text" id="searchInput" oninput="handleSearch()" class="input-story pl-11 rounded-full py-2.5" placeholder="在草地上尋找物品...">
+                <input type="text" id="searchInput" oninput="handleSearch()" class="input-story pl-11 rounded-full py-2.5" placeholder="在草地上尋找可愛商品...">
             </div>
 
             <!-- 管理員工具列 -->
             <div id="adminToolbar" class="hidden flex flex-wrap items-center bg-white/60 backdrop-blur-md border border-white p-2 rounded-full shadow-sm w-full md:w-auto gap-2">
-                <span class="text-nature-forest font-bold mx-3 hidden md:flex items-center whitespace-nowrap text-xs">
-                    <i class="ph-light ph-flower-tulip text-nature-flower_o mr-1.5 text-lg"></i>
-                    花園管理區
+                <span class="text-nature-forest font-bold mx-3 hidden lg:flex items-center whitespace-nowrap text-xs">
+                    <i class="ph-light ph-crown text-amber-500 mr-1.5 text-lg"></i> 店長管理區
                 </span>
-                <div class="flex space-x-2 w-full md:w-auto">
-                    <button onclick="openOrdersModal()" class="btn-story bg-nature-sky/50 text-sky-700 hover:bg-nature-sky border border-white px-4 py-1.5 flex-1 md:flex-none space-x-1.5">
-                        <i class="ph-light ph-receipt text-base"></i>
-                        <span class="whitespace-nowrap">查看訂單</span>
+                <div class="flex space-x-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                    <button onclick="openMissionModal()" class="btn-story bg-amber-100/50 text-amber-700 hover:bg-amber-100 border border-white px-3 py-1.5 whitespace-nowrap">
+                        <i class="ph-light ph-flag text-base mr-1"></i> 購物任務設定
                     </button>
-                    <button onclick="openItemModal()" class="btn-story bg-nature-grass/50 text-green-700 hover:bg-nature-grass border border-white px-4 py-1.5 flex-1 md:flex-none space-x-1.5">
-                        <i class="ph-light ph-plus-circle text-base"></i>
-                        <span class="whitespace-nowrap">種植新商品</span>
+                    <button onclick="openAccountsModal()" class="btn-story bg-slate-100/50 text-slate-700 hover:bg-slate-100 border border-white px-3 py-1.5 whitespace-nowrap hidden sm:flex">
+                        <i class="ph-light ph-users text-base mr-1"></i> 協作者
+                    </button>
+                    <button onclick="openOrdersModal()" class="btn-story bg-nature-sky/50 text-sky-700 hover:bg-nature-sky border border-white px-3 py-1.5 whitespace-nowrap">
+                        <i class="ph-light ph-receipt text-base mr-1"></i> 訂單
+                    </button>
+                    <button onclick="openItemModal()" class="btn-story bg-nature-grass/50 text-green-700 hover:bg-nature-grass border border-white px-3 py-1.5 whitespace-nowrap">
+                        <i class="ph-light ph-plus-circle text-base mr-1"></i> 上架
                     </button>
                 </div>
             </div>
@@ -183,9 +207,9 @@
 
         <!-- 載入中動畫 -->
         <div id="loadingIndicator" class="flex justify-center items-center py-24">
-            <div class="text-center animate-pulse bg-white/50 p-8 rounded-3xl backdrop-blur-sm border border-white">
-                <i class="ph-light ph-wind text-5xl text-nature-sky_dark mb-3"></i>
-                <p class="font-cursive text-2xl text-nature-forest">微風正在吹來商品...</p>
+            <div class="text-center animate-pulse bg-white/50 p-8 rounded-3xl backdrop-blur-sm border border-white shadow-sm">
+                <i class="ph-fill ph-shopping-bag text-5xl text-rose-300 mb-3 drop-shadow-sm"></i>
+                <p class="font-cursive text-2xl text-nature-forest">正在為您準備商品清單...</p>
             </div>
         </div>
 
@@ -195,8 +219,8 @@
         <!-- 無資料提示 -->
         <div id="emptyState" class="hidden text-center py-24">
             <div class="inline-block bg-white/50 p-10 rounded-3xl backdrop-blur-sm border border-white shadow-sm">
-                <i class="ph-light ph-leaf text-6xl mb-3 text-nature-grass_dark opacity-80"></i>
-                <p class="font-cursive text-3xl text-nature-forest">這片草地目前空空的喔！</p>
+                <i class="ph-light ph-storefront text-6xl mb-3 text-sky-400 opacity-80"></i>
+                <p class="font-cursive text-3xl text-nature-forest">目前架上還沒有商品喔！</p>
             </div>
         </div>
     </main>
@@ -204,11 +228,11 @@
     <footer class="bg-white/30 backdrop-blur-sm border-t border-white py-6 mt-auto relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-xs text-nature-text_light">
             <div class="story-header mb-3 md:mb-0">
-                <span class="story-header-sub">From the Meadow</span>
+                <span class="story-header-sub">Shopping System</span>
                 <span id="footerTitle" class="font-cursive text-xl text-nature-forest">可愛物品訂購小舖</span>
             </div>
             <div class="font-medium tracking-wide flex items-center bg-white/50 px-4 py-1.5 rounded-full border border-white">
-                &copy; 2026 Watercolor Meadow. <i class="ph-fill ph-flower text-nature-flower_y ml-2 text-sm"></i>
+                &copy; 2026 Online Shop. <i class="ph-fill ph-heart text-rose-400 ml-2 text-sm"></i>
             </div>
         </div>
     </footer>
@@ -219,20 +243,60 @@
     <div id="titleEditModal" class="fixed inset-0 bg-slate-900/20 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4">
         <div class="card-story p-6 max-w-sm w-full relative transform transition-all">
             <div class="story-header mb-5">
-                <span class="story-header-sub">Rename</span>
+                <span class="story-header-sub">Rename Shop</span>
                 <h2 class="font-cursive text-3xl text-nature-forest flex items-center">
-                    <i class="ph-light ph-text-t text-nature-sky_dark mr-2"></i> 修改花園名稱
+                    <i class="ph-light ph-text-t text-nature-sky_dark mr-2"></i> 修改商店名稱
                 </h2>
             </div>
             <div class="space-y-5">
                 <div>
-                    <label class="block font-semibold text-nature-text_light text-xs mb-1.5">幫這片草地取個新名字：</label>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1.5">幫您的店舖取個新名字：</label>
                     <input type="text" id="editWebsiteTitle" class="input-story font-cursive text-xl">
                 </div>
                 <div class="flex justify-end space-x-2 pt-2">
                     <button onclick="closeModal('titleEditModal')" class="btn-story bg-white border border-slate-200 text-nature-text hover:bg-slate-50">取消</button>
-                    <button onclick="saveWebsiteTitle()" class="btn-story bg-nature-grass_dark text-green-900 hover:bg-[#6ce096]">
+                    <button onclick="saveWebsiteTitle()" class="btn-story bg-sky-200 text-sky-900 hover:bg-sky-300">
                         掛上新招牌
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 購物任務設定視窗 (Mission Management) -->
+    <div id="missionModal" class="fixed inset-0 bg-slate-900/20 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-6 max-w-sm w-full relative">
+            <button onclick="closeModal('missionModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors z-10">
+                <i class="ph-light ph-x text-xl"></i>
+            </button>
+            <div class="story-header mb-6">
+                <span class="story-header-sub">Campaign Settings</span>
+                <h2 class="font-cursive text-3xl text-nature-forest flex items-center mt-1">
+                    <i class="ph-light ph-flag text-amber-500 mr-2"></i> 購物任務設定
+                </h2>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">設定目前開放的購物任務名稱 <span class="text-rose-400">*</span></label>
+                    <input type="text" id="missionNameInput" class="input-story bg-white" placeholder="例如：六月團購任務、夏季出清大作戰...">
+                    <p class="text-[10px] text-nature-text_light mt-1.5">顧客的訂單都會被標記為此任務名稱，方便您後續分類匯出。</p>
+                </div>
+
+                <div class="bg-white/50 border border-white shadow-sm p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-sm text-nature-forest">開放顧客下單</p>
+                        <p class="text-[11px] text-nature-text_light">關閉時，顧客只能看商品無法加入購物車</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="missionStatusToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-nature-grass_dark shadow-inner"></div>
+                    </label>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="saveMissionSettings()" class="w-full btn-story bg-amber-200 text-amber-900 hover:bg-amber-300 py-2.5 text-sm flex justify-center items-center shadow-md">
+                        <i class="ph-bold ph-check mr-2 text-lg"></i> 儲存任務設定
                     </button>
                 </div>
             </div>
@@ -246,19 +310,19 @@
                 <i class="ph-light ph-x text-xl"></i>
             </button>
             <div class="text-center mb-6">
-                <div class="mx-auto w-14 h-14 bg-nature-sky/50 border border-white rounded-2xl flex items-center justify-center mb-3 text-sky-600 shadow-sm rotate-3">
+                <div class="mx-auto w-14 h-14 bg-sky-100 border border-white rounded-2xl flex items-center justify-center mb-3 text-sky-500 shadow-sm rotate-3">
                     <i class="ph-light ph-key text-2xl"></i>
                 </div>
                 <div class="story-header items-center">
                     <span class="story-header-sub">Manager Login</span>
-                    <h2 class="font-cursive text-3xl text-nature-forest">管理員入口</h2>
+                    <h2 class="font-cursive text-3xl text-nature-forest">店長入口</h2>
                 </div>
             </div>
             <div class="space-y-4">
                 <input type="text" id="loginUsername" class="input-story" placeholder="帳號 (預設: admin)">
                 <input type="password" id="loginPassword" class="input-story" placeholder="密碼 (預設: admin123)">
                 <button onclick="checkLogin()" class="btn-story w-full bg-nature-sky_dark text-sky-900 hover:bg-[#a5dbf9] py-2.5 mt-2 text-sm shadow-sm">
-                    進入花園 <i id="loginSpinner" class="ph-light ph-spinner animate-spin text-lg ml-2 hidden"></i>
+                    進入管理後台 <i id="loginSpinner" class="ph-light ph-spinner animate-spin text-lg ml-2 hidden"></i>
                 </button>
             </div>
         </div>
@@ -271,9 +335,9 @@
                 <i class="ph-light ph-x text-xl"></i>
             </button>
             <div class="story-header mb-6">
-                <span class="story-header-sub">Planting Seed</span>
+                <span class="story-header-sub">New Product</span>
                 <h2 id="itemModalTitle" class="font-cursive text-3xl text-nature-forest flex items-center">
-                    <i class="ph-light ph-potted-plant text-nature-grass_dark mr-2"></i> 種植新商品囉！
+                    <i class="ph-fill ph-package text-sky-500 mr-2"></i> 上架新商品囉！
                 </h2>
             </div>
             
@@ -282,16 +346,16 @@
                 
                 <div>
                     <label class="block font-semibold text-nature-text_light text-xs mb-1">商品名稱 <span class="text-rose-400">*</span></label>
-                    <input type="text" id="itemTitle" required class="input-story" placeholder="給它取個好名字...">
+                    <input type="text" id="itemTitle" required class="input-story" placeholder="填寫商品名稱...">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-nature-text_light text-xs mb-1">價格 (NT$) <span class="text-rose-400">*</span></label>
+                        <label class="block font-semibold text-nature-text_light text-xs mb-1">商品定價 (NT$) <span class="text-rose-400">*</span></label>
                         <input type="number" id="itemPrice" min="0" required class="input-story font-bold text-rose-500">
                     </div>
                     <div>
-                        <label class="block font-semibold text-nature-text_light text-xs mb-1">數量 <span class="text-rose-400">*</span></label>
+                        <label class="block font-semibold text-nature-text_light text-xs mb-1">庫存數量 <span class="text-rose-400">*</span></label>
                         <input type="number" id="itemStock" min="0" required class="input-story font-bold text-sky-600">
                     </div>
                 </div>
@@ -299,107 +363,117 @@
                 <div class="bg-white/40 border border-white shadow-inner p-4 rounded-2xl space-y-3">
                     <div>
                         <label class="block font-semibold text-nature-text mb-1.5 flex items-center text-xs">
-                            <i class="ph-light ph-image mr-1.5 text-base text-nature-flower_b"></i> 1. 封面縮圖網址 <span class="text-rose-400 ml-1">*</span>
+                            <i class="ph-light ph-image mr-1.5 text-base text-sky-500"></i> 1. 封面縮圖網址 <span class="text-rose-400 ml-1">*</span>
                         </label>
-                        <input type="url" id="itemImageUrl" required placeholder="請貼上分享連結..." class="input-story bg-white text-xs">
+                        <input type="url" id="itemImageUrl" required placeholder="代表這項商品的照片連結..." class="input-story bg-white text-xs">
                     </div>
                     <div>
                         <label class="block font-semibold text-nature-text mb-1.5 flex items-center text-xs">
                             <i class="ph-light ph-folder-open mr-1.5 text-base text-amber-500"></i> 2. 更多照片 (Google Drive 資料夾)
                         </label>
-                        <input type="url" id="itemFolderUrl" placeholder="(選填) 讓大家點擊圖片可以看到更多照片..." class="input-story bg-white text-xs">
+                        <input type="url" id="itemFolderUrl" placeholder="(選填) 讓顧客點擊圖片可以瀏覽更多細節照..." class="input-story bg-white text-xs">
                     </div>
                     <p class="text-[11px] text-nature-text_light mt-2 flex items-center"><i class="ph-fill ph-info text-nature-sky_dark mr-1"></i> 請確認照片與資料夾權限皆已設為「知道連結的人皆可查看」</p>
                 </div>
                 
                 <div>
                     <label class="block font-semibold text-nature-text_light text-xs mb-1">商品說明</label>
-                    <textarea id="itemDesc" rows="3" class="input-story text-sm" placeholder="簡單介紹一下這個寶貝..."></textarea>
+                    <textarea id="itemDesc" rows="3" class="input-story text-sm" placeholder="簡單介紹一下這個商品..."></textarea>
                 </div>
 
                 <div class="flex justify-end space-x-3 pt-4 border-t border-white/50">
                     <button type="button" onclick="closeModal('itemModal')" class="btn-story bg-white border border-slate-200 text-nature-text hover:bg-slate-50">取消</button>
-                    <button type="submit" class="btn-story bg-nature-grass_dark text-green-900 hover:bg-[#6ce096] flex items-center shadow-sm">
-                        <i class="ph-light ph-check-circle mr-1.5 text-lg"></i> 確認種植
+                    <button type="submit" class="btn-story bg-sky-300 text-sky-900 hover:bg-sky-400 flex items-center shadow-sm">
+                        <i class="ph-light ph-check-circle mr-1.5 text-lg"></i> 確認上架商品
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 顧客訂購表單視窗 -->
-    <div id="orderModal" class="fixed inset-0 bg-slate-900/20 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4 overflow-y-auto">
-        <div class="card-story p-6 sm:p-8 max-w-sm w-full my-auto relative">
-            <button onclick="closeModal('orderModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors">
-                <i class="ph-light ph-x text-xl"></i>
+    <!-- 購物車與結帳視窗 -->
+    <div id="cartModal" class="fixed inset-0 bg-slate-900/40 z-[60] hidden flex items-center justify-center backdrop-blur-md p-4 overflow-y-auto">
+        <div class="bg-[#FCFBF8] border-4 border-rose-100 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-6 sm:p-8 max-w-lg w-full my-auto relative overflow-hidden flex flex-col max-h-[90vh]">
+            <i class="ph-fill ph-shopping-cart text-rose-100 text-8xl absolute -top-4 -right-4 opacity-50 rotate-12"></i>
+            <i class="ph-fill ph-flower-tulip text-sky-100 text-6xl absolute -bottom-2 -left-2 opacity-50 -rotate-12"></i>
+
+            <button onclick="closeModal('cartModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors z-10 border border-slate-100">
+                <i class="ph-bold ph-x text-xl"></i>
             </button>
-            <div class="story-header mb-6">
-                <span class="story-header-sub">Harvesting</span>
-                <h2 class="font-cursive text-3xl text-nature-forest flex items-center">
-                    <i class="ph-light ph-shopping-cart text-nature-flower_o mr-2"></i> 帶我回家吧！
-                </h2>
+            
+            <div class="text-center mb-4 relative z-10">
+                <span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-rose-200" id="cartMissionNameBadge">Shopping Cart</span>
+                <h2 class="font-cursive text-3xl text-nature-forest mt-2 font-bold drop-shadow-sm">您的購物車</h2>
             </div>
             
-            <div class="bg-white/60 border border-white shadow-sm p-4 rounded-2xl mb-5 relative overflow-hidden">
-                <div class="absolute -right-4 -bottom-4 text-nature-flower_y/30"><i class="ph-fill ph-flower text-6xl"></i></div>
-                <h3 id="orderItemName" class="font-bold text-nature-forest text-lg mb-0.5 relative z-10"></h3>
-                <p class="font-medium text-nature-text_light text-xs relative z-10">單價: NT$ <span id="orderItemPrice" class="text-rose-500 font-bold"></span></p>
-                <p class="font-medium text-nature-text_light text-xs mt-0.5 relative z-10">目前剩下: <span id="orderItemMaxStock" class="text-sky-600 font-bold"></span> 個</p>
+            <!-- 購物車內容區 -->
+            <div class="flex-grow overflow-y-auto custom-scrollbar pr-2 mb-4 relative z-10">
+                <div id="cartItemsList" class="space-y-3">
+                    <!-- Cart items will be injected here -->
+                </div>
+                <div id="cartEmptyMsg" class="hidden text-center py-8 opacity-60">
+                    <i class="ph-light ph-shopping-cart text-5xl mb-2 block"></i>
+                    <p class="font-bold">購物車裡面空空的喔！</p>
+                </div>
             </div>
 
-            <form id="orderForm" onsubmit="submitOrder(event)" class="space-y-4">
-                <input type="hidden" id="orderItemId">
-                <input type="hidden" id="orderItemPriceValue">
+            <!-- 結帳表單 -->
+            <form id="checkoutForm" onsubmit="submitCheckout(event)" class="space-y-4 relative z-10 border-t border-rose-100 pt-4 mt-auto">
                 
-                <div>
-                    <label class="block font-semibold text-nature-text_light text-xs mb-1">需要的數量 <span class="text-rose-400">*</span></label>
-                    <input type="number" id="orderQty" min="1" required class="input-story text-lg text-center text-sky-600 font-bold bg-white" oninput="calculateTotal()">
+                <div class="quest-step bg-white/80 border-rose-100">
+                    <label class="block font-bold text-nature-text text-sm mb-2 mt-1">🌸 請填寫您的聯絡資訊</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="orderBuyerName" required class="input-story bg-white border border-slate-200 text-xs py-1.5" placeholder="姓名...">
+                        <input type="tel" id="orderBuyerPhone" required class="input-story bg-white border border-slate-200 text-xs py-1.5" placeholder="聯絡電話...">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block font-semibold text-nature-text_light text-xs mb-1">您的姓名 <span class="text-rose-400">*</span></label>
-                    <input type="text" id="orderBuyerName" required class="input-story bg-white" placeholder="怎麼稱呼您呢？">
-                </div>
-                
-                <div>
-                    <label class="block font-semibold text-nature-text_light text-xs mb-1">聯絡電話 <span class="text-rose-400">*</span></label>
-                    <input type="tel" id="orderBuyerPhone" required class="input-story bg-white" placeholder="讓我們能聯繫到您...">
+                <div class="bg-rose-50/50 border border-rose-200 p-3 rounded-xl flex justify-between items-center shadow-sm">
+                    <span class="text-nature-text font-bold text-sm">訂單總計：</span>
+                    <span class="text-2xl font-bold text-rose-500 font-cursive tracking-wide">NT$ <span id="cartTotalAmount">0</span></span>
                 </div>
 
-                <div class="pt-4 pb-2 border-t border-white/50 flex justify-between items-end">
-                    <span class="text-nature-text_light font-semibold text-xs">總金額：</span>
-                    <span class="text-2xl font-bold text-rose-500 font-cursive tracking-wide">NT$ <span id="orderTotalAmount">0</span></span>
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-2">
-                    <button type="button" onclick="closeModal('orderModal')" class="btn-story bg-white border border-slate-200 text-nature-text hover:bg-slate-50">再想想</button>
-                    <button type="submit" class="btn-story bg-rose-300 text-rose-900 hover:bg-rose-400 flex justify-center items-center shadow-sm">
-                        <i class="ph-light ph-check-fat mr-1.5 text-lg"></i> 確認購買
-                    </button>
-                </div>
+                <button type="submit" id="checkoutBtn" class="w-full btn-story bg-rose-400 text-white hover:bg-rose-500 py-3 text-lg flex justify-center items-center shadow-md">
+                    <i class="ph-bold ph-check-fat mr-2 text-xl"></i> 確認送出訂單！
+                </button>
             </form>
         </div>
     </div>
 
     <!-- 訂單管理清單視窗 -->
     <div id="ordersListModal" class="fixed inset-0 bg-slate-900/20 z-[60] hidden flex items-center justify-center backdrop-blur-sm p-4">
-        <div class="card-story p-6 sm:p-8 max-w-3xl w-full max-h-[85vh] flex flex-col relative">
+        <div class="card-story p-6 sm:p-8 max-w-5xl w-full max-h-[90vh] flex flex-col relative">
             <button onclick="closeModal('ordersListModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors z-10"><i class="ph-light ph-x text-xl"></i></button>
-            <div class="story-header mb-5 pb-3 border-b border-white/50">
-                <span class="story-header-sub">Order Records</span>
-                <h2 class="font-cursive text-3xl text-nature-forest flex items-center">
-                    <i class="ph-light ph-clipboard-text text-nature-sky_dark mr-2"></i> 大家的購買紀錄
-                </h2>
+            
+            <div class="story-header mb-5 pb-3 border-b border-white/50 flex flex-col md:flex-row justify-between md:items-end gap-3 w-full">
+                <div>
+                    <span class="story-header-sub">Order Records</span>
+                    <h2 class="font-cursive text-3xl text-nature-forest flex items-center mt-1">
+                        <i class="ph-light ph-scroll text-amber-500 mr-2"></i> 客戶訂單紀錄
+                    </h2>
+                </div>
+                
+                <!-- 篩選與匯出區塊 -->
+                <div class="flex items-center space-x-2 bg-white/60 p-1.5 rounded-xl border border-white shadow-sm">
+                    <i class="ph-light ph-funnel text-nature-text_light ml-2"></i>
+                    <select id="missionFilter" onchange="renderOrdersList()" class="bg-transparent border-none text-sm font-bold text-nature-text focus:ring-0 outline-none pr-6 cursor-pointer">
+                        <option value="all">所有任務紀錄</option>
+                        <!-- Options generated by JS -->
+                    </select>
+                    <button onclick="exportOrdersToExcel()" class="btn-story bg-green-500 text-white hover:bg-green-600 px-3 py-1.5 ml-2 shadow-sm whitespace-nowrap">
+                        <i class="ph-bold ph-file-xls mr-1"></i> 匯出 Excel
+                    </button>
+                </div>
             </div>
+
             <div class="overflow-y-auto flex-grow custom-scrollbar rounded-2xl bg-white/40 border border-white shadow-inner p-2">
                 <table class="min-w-full divide-y divide-white">
                     <thead class="sticky top-0 bg-white/80 backdrop-blur-sm rounded-t-xl z-10">
                         <tr>
-                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tl-xl">下單時間</th>
-                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">商品</th>
-                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">買家資訊</th>
-                            <th class="px-4 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider">數量</th>
-                            <th class="px-4 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tr-xl">金額</th>
+                            <th class="px-3 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tl-xl">訂購時間 / 任務</th>
+                            <th class="px-3 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">客戶資訊</th>
+                            <th class="px-3 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">購買明細</th>
+                            <th class="px-3 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tr-xl">訂單總計</th>
                         </tr>
                     </thead>
                     <tbody id="ordersListBody" class="divide-y divide-white font-medium text-nature-text">
@@ -407,7 +481,7 @@
                     </tbody>
                 </table>
                 <div id="noOrdersMsg" class="hidden text-center py-16 text-nature-text_light font-medium text-sm">
-                    <i class="ph-light ph-wind text-5xl mb-2 block opacity-40"></i> 紀錄清單空空的，跟風一樣乾淨。
+                    <i class="ph-light ph-wind text-5xl mb-2 block opacity-40"></i> 此條件下沒有任何訂單喔。
                 </div>
             </div>
         </div>
@@ -419,8 +493,8 @@
             <div class="mx-auto w-16 h-16 bg-rose-100 border border-white rounded-full flex items-center justify-center mb-4 text-rose-400 shadow-sm">
                 <i class="ph-light ph-trash text-3xl"></i>
             </div>
-            <h2 class="font-cursive text-3xl mb-2 text-nature-forest">真的要移除嗎？</h2>
-            <p class="text-nature-text_light text-xs mb-6 font-medium bg-white/50 p-3 rounded-xl border border-white">商品會從草地上消失，<br>但過去的訂單紀錄會被保留下來喔。</p>
+            <h2 class="font-cursive text-3xl mb-2 text-nature-forest">真的要移除商品嗎？</h2>
+            <p class="text-nature-text_light text-xs mb-6 font-medium bg-white/50 p-3 rounded-xl border border-white">商品會從架上消失，<br>但過去的訂單紀錄會被保留下來喔。</p>
             <input type="hidden" id="deleteId">
             <div class="flex justify-center space-x-3">
                 <button onclick="closeModal('deleteModal')" class="btn-story flex-1 bg-white border border-slate-200 text-nature-text hover:bg-slate-50">先不要</button>
@@ -429,9 +503,89 @@
         </div>
     </div>
 
+    <!-- 帳號管理清單視窗 -->
+    <div id="accountsListModal" class="fixed inset-0 bg-slate-900/20 z-[60] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-6 sm:p-8 max-w-2xl w-full max-h-[85vh] flex flex-col relative">
+            <button onclick="closeModal('accountsListModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors z-10"><i class="ph-light ph-x text-xl"></i></button>
+            <div class="story-header mb-5 pb-3 border-b border-white/50 flex flex-row justify-between w-full items-end">
+                <div>
+                    <span class="story-header-sub">Collaborators</span>
+                    <h2 class="font-cursive text-3xl text-nature-forest flex items-center mt-1">
+                        <i class="ph-light ph-users text-sky-500 mr-2"></i> 協作者管理
+                    </h2>
+                </div>
+                <button onclick="openAccountEditModal()" class="btn-story bg-nature-grass_dark text-green-900 hover:bg-[#6ce096] shadow-sm py-1.5 px-3">
+                    <i class="ph-light ph-user-plus mr-1.5 text-lg"></i> 新增
+                </button>
+            </div>
+            <div class="overflow-y-auto flex-grow custom-scrollbar rounded-2xl bg-white/40 border border-white shadow-inner p-2">
+                <table class="min-w-full divide-y divide-white">
+                    <thead class="sticky top-0 bg-white/80 backdrop-blur-sm rounded-t-xl z-10">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tl-xl">帳號名稱</th>
+                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">登入密碼</th>
+                            <th class="px-4 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tr-xl">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accountsListBody" class="divide-y divide-white font-medium text-nature-text">
+                        <!-- Accounts will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帳號新增/編輯視窗 -->
+    <div id="accountEditModal" class="fixed inset-0 bg-slate-900/20 z-[70] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-6 sm:p-8 max-w-sm w-full relative">
+            <button onclick="closeModal('accountEditModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors z-10">
+                <i class="ph-light ph-x text-xl"></i>
+            </button>
+            <div class="story-header mb-6">
+                <span class="story-header-sub">Account Details</span>
+                <h2 id="accModalTitle" class="font-cursive text-3xl text-nature-forest flex items-center">
+                    <i class="ph-light ph-user-plus text-sky-500 mr-2"></i> 新增協作者
+                </h2>
+            </div>
+            
+            <form id="accForm" onsubmit="saveAccount(event)" class="space-y-4">
+                <input type="hidden" id="accId">
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">登入帳號 <span class="text-rose-400">*</span></label>
+                    <input type="text" id="accUsername" required class="input-story bg-white/80" placeholder="設定登入帳號...">
+                </div>
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">登入密碼 <span class="text-rose-400">*</span></label>
+                    <input type="text" id="accPassword" required class="input-story bg-white/80" placeholder="設定密碼...">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full btn-story bg-nature-sky_dark text-sky-900 hover:bg-[#a5dbf9] py-3 text-lg flex justify-center items-center shadow-md">
+                        <i class="ph-bold ph-check-fat mr-2 text-xl"></i> 儲存設定
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 刪除帳號確認視窗 -->
+    <div id="deleteAccountModal" class="fixed inset-0 bg-slate-900/20 z-[70] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-8 max-w-sm w-full text-center">
+            <div class="mx-auto w-16 h-16 bg-rose-100 border border-white rounded-full flex items-center justify-center mb-4 text-rose-400 shadow-sm">
+                <i class="ph-light ph-user-minus text-3xl"></i>
+            </div>
+            <h2 class="font-cursive text-3xl mb-2 text-nature-forest">真的要移除協作者嗎？</h2>
+            <p class="text-nature-text_light text-xs mb-6 font-medium bg-white/50 p-3 rounded-xl border border-white">移除後此帳號將無法登入後台。</p>
+            <input type="hidden" id="deleteAccountId">
+            <div class="flex justify-center space-x-3">
+                <button onclick="closeModal('deleteAccountModal')" class="btn-story flex-1 bg-white border border-slate-200 text-nature-text hover:bg-slate-50">先不要</button>
+                <button onclick="confirmDeleteAccount()" class="btn-story flex-1 bg-rose-400 text-white hover:bg-rose-500 shadow-sm">確認移除</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 吐司通知 -->
     <div id="toast" class="fixed bottom-6 right-6 transform translate-y-32 opacity-0 transition-all duration-500 z-[100] flex items-center bg-white/90 backdrop-blur-md border border-white text-nature-forest px-5 py-3 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] pointer-events-none">
-        <i id="toastIcon" class="ph-fill ph-check-circle text-nature-grass_dark text-2xl mr-2"></i>
+        <i id="toastIcon" class="ph-fill ph-check-circle text-sky-400 text-2xl mr-2"></i>
         <span id="toastMessage" class="font-bold text-sm">成功完成！</span>
     </div>
 
@@ -441,13 +595,9 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 系統變數 (避免名稱與環境保留字 app 衝突，改用 firebaseApp)
         let firebaseApp, auth, db, currentUser;
-        
-        // 依賴環境變數提供 appId (確保相容性)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-storybook-app';
         
-        // 您的專屬 Firebase 設定
    const firebaseConfig = {
   apiKey: "AIzaSyCXZpd2BzuDe-jaKA2sClziAjnDhZLAWdM",
   authDomain: "sell-7cf41.firebaseapp.com",
@@ -457,21 +607,31 @@
   appId: "1:495635985538:web:f54ac5c70a3331e071f09b"
 };
 
+
         // 應用程式狀態
         let isAdmin = false;
+        let currentAdminId = null; 
         let itemsData = [];
         let ordersData = [];
+        let accountsData = []; 
         let searchQuery = '';
-        let globalSettings = { title: '可愛物品訂購小舖' }; 
+        
+        // 預設全域設定 (包含購物任務檔期狀態)
+        let globalSettings = { 
+            title: '可愛物品訂購小舖',
+            missionName: '',
+            isMissionOpen: false 
+        }; 
 
-        // --- 初始化系統 ---
+        // 購物車資料 [{ id, title, price, qty, stock, maxStock }]
+        let cart = []; 
+
         const initSystem = async () => {
             try {
                 firebaseApp = initializeApp(firebaseConfig);
                 auth = getAuth(firebaseApp);
                 db = getFirestore(firebaseApp);
 
-                // 強制登入授權
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
@@ -490,54 +650,84 @@
             }
         };
 
-        // --- 設定資料庫即時監聽 ---
         const setupRealtimeListeners = () => {
             if (!currentUser) return;
 
-            // 監聽全域設定
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), (docSnap) => {
                 if (docSnap.exists()) {
-                    globalSettings = docSnap.data();
-                } else {
-                    globalSettings = { title: '可愛物品訂購小舖' };
+                    globalSettings = { ...globalSettings, ...docSnap.data() };
                 }
                 updateGlobalUI();
+                renderItems(); // 狀態改變可能影響按鈕
             });
 
-            // 監聽物品清單
             const itemsRef = collection(db, 'artifacts', appId, 'public', 'data', 'items');
             onSnapshot(itemsRef, (snapshot) => {
                 itemsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 document.getElementById('loadingIndicator').classList.add('hidden');
+                
+                // 同步更新購物車內庫存
+                cart.forEach(cItem => {
+                    const dbItem = itemsData.find(i => i.id === cItem.id);
+                    if(dbItem) cItem.maxStock = dbItem.stock;
+                });
+                
                 renderItems();
-            }, (error) => {
-                console.error("Error fetching items:", error);
-            });
+                if(!document.getElementById('cartModal').classList.contains('hidden')){
+                    renderCart();
+                }
+            }, (error) => { console.error("Error fetching items:", error); });
 
             const accountsRef = collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
             onSnapshot(accountsRef, async (snapshot) => {
-                if (snapshot.empty && isAdmin) {}
-            }, (error) => { console.error("Account error:", error); });
+                if (snapshot.empty) {
+                    try {
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), {
+                            username: 'admin', password: 'admin123', role: 'admin', createdAt: serverTimestamp()
+                        });
+                    } catch(e) {}
+                } else {
+                    accountsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (isAdmin && !document.getElementById('accountsListModal').classList.contains('hidden')) {
+                        renderAccountsList();
+                    }
+                }
+            });
 
-            // 監聽訂單
             const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
             onSnapshot(ordersRef, (snapshot) => {
                 ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                if(isAdmin) renderOrdersList();
-            }, (error) => { console.error("Orders fetch error:", error); });
+                if(isAdmin && !document.getElementById('ordersListModal').classList.contains('hidden')){
+                    renderOrdersList();
+                }
+            });
         };
 
-        // --- 更新全域 UI ---
         const updateGlobalUI = () => {
-            document.title = globalSettings.title || '可愛物品訂購小舖';
+            document.title = globalSettings.title;
             const navTitleEl = document.getElementById('navTitle');
             const footerTitleEl = document.getElementById('footerTitle');
-            if(navTitleEl) navTitleEl.innerText = globalSettings.title || '可愛物品訂購小舖';
-            if(footerTitleEl) footerTitleEl.innerText = globalSettings.title || '可愛物品訂購小舖';
+            if(navTitleEl) navTitleEl.innerText = globalSettings.title;
+            if(footerTitleEl) footerTitleEl.innerText = globalSettings.title;
+
+            // 更新購物任務狀態橫幅
+            const banner = document.getElementById('missionBanner');
+            const statusText = document.getElementById('missionStatusText');
+            const icon = document.getElementById('missionIcon');
+            
+            if (globalSettings.isMissionOpen) {
+                banner.className = "bg-green-50/90 backdrop-blur-sm border-b border-white shadow-sm";
+                icon.className = "ph-fill ph-storefront text-green-500 text-xl";
+                statusText.innerHTML = `購物任務開放中：<span class="font-bold text-green-700 ml-1 bg-white px-2 py-0.5 rounded-full border border-green-100">${globalSettings.missionName || '未命名任務'}</span>`;
+            } else {
+                banner.className = "bg-rose-50/90 backdrop-blur-sm border-b border-white shadow-sm";
+                icon.className = "ph-fill ph-lock-key text-rose-400 text-xl";
+                statusText.innerHTML = `<span class="text-rose-600">目前未開放購物</span> <span class="text-xs text-rose-400 ml-2 font-normal">(僅供瀏覽商品)</span>`;
+            }
         };
 
         const openTitleModal = () => {
-            document.getElementById('editWebsiteTitle').value = globalSettings.title || '可愛物品訂購小舖';
+            document.getElementById('editWebsiteTitle').value = globalSettings.title;
             document.getElementById('titleEditModal').classList.remove('hidden');
         };
 
@@ -547,18 +737,43 @@
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { title: newTitle }, { merge: true });
                 closeModal('titleEditModal');
-                showToast("花園有了新名字囉！");
-            } catch (e) { 
-                showToast("哎呀，招牌掛不上去", "error"); 
+                showToast("商店掛上新招牌囉！");
+            } catch (e) { showToast("修改失敗", "error"); }
+        };
+
+        // --- 購物任務管理 ---
+        const openMissionModal = () => {
+            document.getElementById('missionNameInput').value = globalSettings.missionName || '';
+            document.getElementById('missionStatusToggle').checked = globalSettings.isMissionOpen;
+            document.getElementById('missionModal').classList.remove('hidden');
+        };
+
+        const saveMissionSettings = async () => {
+            const name = document.getElementById('missionNameInput').value.trim();
+            const isOpen = document.getElementById('missionStatusToggle').checked;
+
+            if (isOpen && !name) {
+                showToast("開啟任務必須填寫任務名稱喔！", "error");
+                return;
             }
+
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { 
+                    missionName: name,
+                    isMissionOpen: isOpen
+                }, { merge: true });
+                closeModal('missionModal');
+                showToast(isOpen ? "購物任務已開放！" : "已關閉購物功能。");
+                
+                // 如果關閉了，清空大家的購物車
+                if(!isOpen) { cart = []; updateCartBadge(); }
+            } catch (e) { showToast("儲存失敗", "error"); }
         };
 
         const formatImageUrl = (url) => {
             if (!url) return '';
             const match = url.match(/(?:drive\.google\.com\/file\/d\/|drive\.google\.com\/open\?id=)([-a-zA-Z0-9_]+)/);
-            if (match && match[1]) {
-                return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
-            }
+            if (match && match[1]) return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
             return url; 
         };
 
@@ -588,13 +803,35 @@
 
                 sortedData.forEach(item => {
                     const isOutOfStock = parseInt(item.stock) <= 0;
+                    const itemPrice = item.price || item.points || 0; 
+                    
                     const stockBadge = isOutOfStock 
                         ? `<span class="bg-rose-100 text-rose-600 border border-white px-2.5 py-1 rounded-full text-[11px] font-bold absolute top-3 left-3 shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-prohibit mr-1"></i> 已售完</span>`
-                        : `<span class="bg-green-100 text-green-700 border border-white px-2.5 py-1 rounded-full text-[11px] font-bold absolute top-3 left-3 shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-check-circle mr-1"></i> 庫存: ${item.stock}</span>`;
+                        : `<span class="bg-green-100 text-green-700 border border-white px-2.5 py-1 rounded-full text-[11px] font-bold absolute top-3 left-3 shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-check-circle mr-1"></i> 庫存剩餘: ${item.stock}</span>`;
 
-                    const orderBtnClass = isOutOfStock 
-                        ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-white" 
-                        : "btn-story bg-nature-sky_dark text-sky-900 hover:bg-[#a5dbf9] border border-white shadow-sm";
+                    let orderBtnClass, orderBtnText, orderBtnDisabled;
+
+                    if (!globalSettings.isMissionOpen) {
+                        orderBtnClass = "bg-slate-100 text-slate-400 cursor-not-allowed border border-white";
+                        orderBtnText = "尚未開放購買";
+                        orderBtnDisabled = "disabled";
+                    } else if (isOutOfStock) {
+                        orderBtnClass = "bg-slate-100 text-slate-400 cursor-not-allowed border border-white";
+                        orderBtnText = "已售完";
+                        orderBtnDisabled = "disabled";
+                    } else {
+                        // 檢查購物車內是否已經加滿
+                        const cartItem = cart.find(c => c.id === item.id);
+                        if(cartItem && cartItem.qty >= item.stock) {
+                            orderBtnClass = "bg-amber-100 text-amber-500 cursor-not-allowed border border-white";
+                            orderBtnText = "購物車已達上限";
+                            orderBtnDisabled = "disabled";
+                        } else {
+                            orderBtnClass = "btn-story bg-nature-sky_dark text-sky-900 hover:bg-[#a5dbf9] border border-white shadow-sm";
+                            orderBtnText = `<i class="ph-bold ph-cart-plus mr-1"></i> 加入購物車`;
+                            orderBtnDisabled = "";
+                        }
+                    }
 
                     let adminButtons = isAdmin ? `
                         <div class="absolute top-3 right-3 flex space-x-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-20">
@@ -612,7 +849,7 @@
                         hoverOverlay = `
                             <div class="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 z-10">
                                 <span class="bg-nature-sky_dark text-sky-900 px-4 py-2 rounded-full font-bold text-xs shadow-sm flex items-center">
-                                    <i class="ph-bold ph-images mr-1.5"></i> 查看更多照片
+                                    <i class="ph-bold ph-images mr-1.5"></i> 查看更多細節照
                                 </span>
                             </div>`;
                     }
@@ -630,15 +867,17 @@
                         ${imgWrapperEnd}
                         <div class="p-5 flex-grow flex flex-col bg-white/40">
                             <h3 class="font-bold text-lg text-nature-forest line-clamp-1 mb-1">${item.title}</h3>
-                            <div class="text-nature-text_light font-medium text-xs line-clamp-2 mb-3 flex-grow">${item.desc || '這是一件隱藏在草叢中的物品...'}</div>
+                            <div class="text-nature-text_light font-medium text-xs line-clamp-2 mb-3 flex-grow">${item.desc || '這是一件可愛的商品...'}</div>
                             
                             <div class="flex justify-between items-end mt-auto pt-4 border-t border-white">
                                 <div>
-                                    <p class="text-[11px] text-nature-text_light font-semibold mb-0.5">花費</p>
-                                    <p class="text-xl font-bold text-rose-500 font-cursive tracking-wider">NT$ ${Number(item.price).toLocaleString()}</p>
+                                    <p class="text-[11px] text-nature-text_light font-bold mb-0.5">商品單價</p>
+                                    <p class="text-xl font-bold text-rose-500 font-cursive tracking-wider">
+                                        NT$ ${Number(itemPrice).toLocaleString()}
+                                    </p>
                                 </div>
-                                <button onclick="openOrderModal('${item.id}')" ${isOutOfStock ? 'disabled' : ''} class="px-4 py-2 rounded-full font-bold flex items-center text-xs transition-all duration-300 ${orderBtnClass}">
-                                    ${isOutOfStock ? '被買光了' : '我要帶走'}
+                                <button onclick="addToCart('${item.id}')" ${orderBtnDisabled} class="px-4 py-2 rounded-full font-bold flex items-center text-xs transition-all duration-300 ${orderBtnClass}">
+                                    ${orderBtnText}
                                 </button>
                             </div>
                         </div>
@@ -653,6 +892,196 @@
             renderItems(); 
         };
 
+        // --- 購物車系統 (Cart System) ---
+        const updateCartBadge = () => {
+            const badge = document.getElementById('cartBadge');
+            const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            badge.innerText = totalQty;
+            
+            // 動畫提醒
+            if(totalQty > 0){
+                badge.classList.add('animate-bounce');
+                setTimeout(() => badge.classList.remove('animate-bounce'), 1000);
+            }
+        };
+
+        const addToCart = (id) => {
+            if (!globalSettings.isMissionOpen) return;
+
+            const item = itemsData.find(p => p.id === id);
+            if (!item || item.stock <= 0) return;
+
+            const itemPrice = item.price || item.points || 0;
+            const existingItem = cart.find(c => c.id === id);
+
+            if (existingItem) {
+                if (existingItem.qty < item.stock) {
+                    existingItem.qty += 1;
+                    showToast(`已將 1 個 ${item.title} 加入購物車`);
+                } else {
+                    showToast("已達庫存上限！", "error");
+                    return;
+                }
+            } else {
+                cart.push({
+                    id: item.id,
+                    title: item.title,
+                    price: itemPrice,
+                    qty: 1,
+                    maxStock: item.stock,
+                    imageUrl: item.imageUrl
+                });
+                showToast(`已將 ${item.title} 加入購物車`);
+            }
+            updateCartBadge();
+            renderItems(); // 重新渲染以更新「購物車已達上限」按鈕狀態
+        };
+
+        const openCartModal = () => {
+            if (!globalSettings.isMissionOpen) {
+                showToast("目前未開放購物，無法結帳喔！", "error");
+                return;
+            }
+            document.getElementById('cartMissionNameBadge').innerText = globalSettings.missionName;
+            renderCart();
+            document.getElementById('cartModal').classList.remove('hidden');
+        };
+
+        const renderCart = () => {
+            const list = document.getElementById('cartItemsList');
+            const emptyMsg = document.getElementById('cartEmptyMsg');
+            const btn = document.getElementById('checkoutBtn');
+            let totalAmount = 0;
+
+            if (cart.length === 0) {
+                list.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                emptyMsg.classList.add('hidden');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                list.innerHTML = cart.map((item, index) => {
+                    // 若後台庫存變少，自動修正購物車數量
+                    if(item.qty > item.maxStock) item.qty = item.maxStock;
+                    
+                    const subtotal = item.price * item.qty;
+                    totalAmount += subtotal;
+                    
+                    // 如果被改到0，建議移除(由下方邏輯處理或使用者自刪)
+                    const isWarning = item.maxStock === 0;
+
+                    return `
+                    <div class="flex items-center justify-between bg-white/60 border border-white p-3 rounded-2xl shadow-sm ${isWarning ? 'opacity-50' : ''}">
+                        <div class="flex items-center space-x-3 w-1/2">
+                            <div class="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-slate-100">
+                                <img src="${formatImageUrl(item.imageUrl)}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmOGZhZmMiLz4';" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <p class="font-bold text-sm text-nature-forest line-clamp-1">${item.title}</p>
+                                <p class="text-rose-500 font-bold text-xs">NT$ ${item.price}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden">
+                                <button type="button" onclick="updateCartQty(${index}, -1)" class="px-2 py-1 text-slate-500 hover:bg-slate-50"><i class="ph-bold ph-minus text-xs"></i></button>
+                                <span class="text-sm font-bold w-6 text-center text-sky-600">${item.qty}</span>
+                                <button type="button" onclick="updateCartQty(${index}, 1)" ${item.qty >= item.maxStock ? 'disabled class="px-2 py-1 text-slate-300"' : 'class="px-2 py-1 text-slate-500 hover:bg-slate-50"'}><i class="ph-bold ph-plus text-xs"></i></button>
+                            </div>
+                            <button type="button" onclick="removeCartItem(${index})" class="text-rose-400 hover:text-rose-600 p-1"><i class="ph-bold ph-trash text-lg"></i></button>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            
+            document.getElementById('cartTotalAmount').innerText = totalAmount.toLocaleString();
+        };
+
+        const updateCartQty = (index, delta) => {
+            const item = cart[index];
+            const newQty = item.qty + delta;
+            if (newQty > 0 && newQty <= item.maxStock) {
+                item.qty = newQty;
+                renderCart();
+                updateCartBadge();
+                renderItems();
+            }
+        };
+
+        const removeCartItem = (index) => {
+            cart.splice(index, 1);
+            renderCart();
+            updateCartBadge();
+            renderItems();
+        };
+
+        const submitCheckout = async (event) => {
+            event.preventDefault();
+            if (!currentUser || cart.length === 0 || !globalSettings.isMissionOpen) return;
+
+            const buyerName = document.getElementById('orderBuyerName').value.trim();
+            const buyerPhone = document.getElementById('orderBuyerPhone').value.trim();
+            const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            // 雙重檢查庫存
+            for (let cItem of cart) {
+                const dbItem = itemsData.find(i => i.id === cItem.id);
+                if(!dbItem || dbItem.stock < cItem.qty) {
+                    showToast(`抱歉，[${cItem.title}] 庫存不足或已下架，請重新調整數量。`, "error");
+                    renderCart();
+                    return;
+                }
+            }
+
+            const orderPayload = {
+                missionName: globalSettings.missionName || '未命名任務', // 記錄綁定的任務
+                buyerName: buyerName,
+                buyerPhone: buyerPhone,
+                items: cart.map(c => ({
+                    itemId: c.id,
+                    itemName: c.title,
+                    unitPrice: c.price,
+                    quantity: c.qty,
+                    subtotal: c.price * c.qty
+                })),
+                totalAmount: totalAmount,
+                createdAt: serverTimestamp()
+            };
+
+            const btn = document.getElementById('checkoutBtn');
+            btn.innerHTML = '<i class="ph-light ph-spinner animate-spin text-xl mr-2"></i> 訂單處理中...';
+            btn.disabled = true;
+            
+            try {
+                // 寫入訂單
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), orderPayload);
+                
+                // 扣除庫存 (使用 Promise.all 並行更新)
+                const updatePromises = cart.map(cItem => {
+                    const dbItem = itemsData.find(i => i.id === cItem.id);
+                    const newStock = dbItem.stock - cItem.qty;
+                    return updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'items', cItem.id), { stock: newStock });
+                });
+                await Promise.all(updatePromises);
+
+                showToast(`結帳成功！訂單總金額為 NT$ ${totalAmount.toLocaleString()}。`);
+                cart = []; // 清空購物車
+                updateCartBadge();
+                closeModal('cartModal');
+                document.getElementById('checkoutForm').reset();
+                
+            } catch (error) {
+                console.error("Order failed:", error);
+                showToast("結帳時出了點錯，請稍後再試。", "error");
+            } finally {
+                btn.innerHTML = '<i class="ph-bold ph-check-fat mr-2 text-xl"></i> 確認送出訂單！';
+                btn.disabled = false;
+            }
+        };
+
+        // --- 商品管理 ---
         const saveItem = async (event) => {
             event.preventDefault();
             if (!currentUser || !isAdmin) return;
@@ -663,7 +1092,7 @@
                 price: Number(document.getElementById('itemPrice').value),
                 stock: Number(document.getElementById('itemStock').value),
                 imageUrl: document.getElementById('itemImageUrl').value.trim(),
-                folderUrl: document.getElementById('itemFolderUrl').value.trim(),
+                folderUrl: document.getElementById('itemFolderUrl').value.trim(), 
                 desc: document.getElementById('itemDesc').value.trim()
             };
 
@@ -675,11 +1104,11 @@
                 } else {
                     payload.createdAt = serverTimestamp();
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'items'), payload);
-                    showToast("新的植物發芽長大囉！");
+                    showToast("新商品成功上架囉！");
                 }
             } catch (error) { 
                 console.error(error);
-                showToast("哎呀，種植失敗了，請重試！", "error"); 
+                showToast("發生錯誤，請重試！", "error"); 
             }
         };
 
@@ -689,13 +1118,13 @@
 
             document.getElementById('itemId').value = item.id;
             document.getElementById('itemTitle').value = item.title;
-            document.getElementById('itemPrice').value = item.price;
+            document.getElementById('itemPrice').value = item.price || item.points || 0; 
             document.getElementById('itemStock').value = item.stock;
             document.getElementById('itemImageUrl').value = item.imageUrl || '';
             document.getElementById('itemFolderUrl').value = item.folderUrl || '';
             document.getElementById('itemDesc').value = item.desc || '';
             
-            document.getElementById('itemModalTitle').innerHTML = '<i class="ph-light ph-plant text-amber-500 mr-2"></i> 編輯商品資訊';
+            document.getElementById('itemModalTitle').innerHTML = '<i class="ph-fill ph-package text-sky-500 mr-2"></i> 編輯商品資訊';
             document.getElementById('itemModal').classList.remove('hidden');
         };
 
@@ -710,95 +1139,45 @@
             closeModal('deleteModal');
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'items', id)); 
-                showToast("商品已經從草地上移除了。");
+                showToast("商品已從架上移除了。");
             } catch (error) { 
                 console.error(error);
                 showToast("移除失敗，請再試一次。", "error"); 
             }
         };
 
-        const openOrderModal = (id) => {
-            const item = itemsData.find(p => p.id === id);
-            if (!item || item.stock <= 0) return;
-
-            document.getElementById('orderItemId').value = item.id;
-            document.getElementById('orderItemName').innerText = item.title;
-            document.getElementById('orderItemPrice').innerText = Number(item.price).toLocaleString();
-            document.getElementById('orderItemPriceValue').value = item.price;
-            document.getElementById('orderItemMaxStock').innerText = item.stock;
-            
-            const qtyInput = document.getElementById('orderQty');
-            qtyInput.value = 1;
-            qtyInput.max = item.stock;
-            
-            document.getElementById('orderBuyerName').value = '';
-            document.getElementById('orderBuyerPhone').value = '';
-            
-            calculateTotal();
-            document.getElementById('orderModal').classList.remove('hidden');
+        // --- 訂單管理與匯出 ---
+        const openOrdersModal = () => {
+            populateMissionFilter();
+            renderOrdersList();
+            document.getElementById('ordersListModal').classList.remove('hidden');
         };
 
-        const calculateTotal = () => {
-            const price = Number(document.getElementById('orderItemPriceValue').value || 0);
-            const qty = Number(document.getElementById('orderQty').value || 0);
-            const max = Number(document.getElementById('orderItemMaxStock').innerText || 0);
+        // 自動生成過濾器選項 (抓取所有曾存在的任務名稱)
+        const populateMissionFilter = () => {
+            const filter = document.getElementById('missionFilter');
+            const missions = new Set();
+            ordersData.forEach(o => { if(o.missionName) missions.add(o.missionName); });
             
-            if (qty > max) document.getElementById('orderQty').value = max;
-            if (qty < 1) document.getElementById('orderQty').value = 1;
-            
-            const finalQty = Number(document.getElementById('orderQty').value || 0);
-            document.getElementById('orderTotalAmount').innerText = (price * finalQty).toLocaleString();
-        };
-
-        const submitOrder = async (event) => {
-            event.preventDefault();
-            if (!currentUser) return;
-
-            const itemId = document.getElementById('orderItemId').value;
-            const item = itemsData.find(p => p.id === itemId);
-            const orderQty = Number(document.getElementById('orderQty').value);
-            
-            if (!item || orderQty <= 0 || orderQty > item.stock) {
-                showToast("數量怪怪的，請檢查一下喔！", "error");
-                return;
-            }
-
-            const buyerName = document.getElementById('orderBuyerName').value.trim();
-            const buyerPhone = document.getElementById('orderBuyerPhone').value.trim();
-            const totalAmount = item.price * orderQty;
-
-            const orderPayload = {
-                itemId: item.id,
-                itemName: item.title,
-                buyerName: buyerName,
-                buyerPhone: buyerPhone,
-                quantity: orderQty,
-                unitPrice: item.price,
-                totalAmount: totalAmount,
-                createdAt: serverTimestamp()
-            };
-
-            closeModal('orderModal');
-            
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), orderPayload);
-                const newStock = item.stock - orderQty;
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'items', itemId), {
-                    stock: newStock
-                });
-
-                showToast(`購買成功！一共是 NT$ ${totalAmount.toLocaleString()}。`);
-            } catch (error) {
-                console.error("Order failed:", error);
-                showToast("結帳時出了點錯，請稍後再試。", "error");
-            }
+            const currentValue = filter.value;
+            filter.innerHTML = '<option value="all">所有任務紀錄</option>';
+            missions.forEach(m => {
+                filter.innerHTML += `<option value="${m}">${m}</option>`;
+            });
+            if(missions.has(currentValue)) filter.value = currentValue;
         };
 
         const renderOrdersList = () => {
             const tbody = document.getElementById('ordersListBody');
             const noMsg = document.getElementById('noOrdersMsg');
+            const filterVal = document.getElementById('missionFilter').value;
             
-            if (ordersData.length === 0) {
+            let filteredOrders = ordersData;
+            if(filterVal !== 'all') {
+                filteredOrders = ordersData.filter(o => o.missionName === filterVal);
+            }
+
+            if (filteredOrders.length === 0) {
                 tbody.innerHTML = '';
                 noMsg.classList.remove('hidden');
                 return;
@@ -806,7 +1185,7 @@
             
             noMsg.classList.add('hidden');
             
-            const sortedOrders = [...ordersData].sort((a, b) => {
+            const sortedOrders = [...filteredOrders].sort((a, b) => {
                 const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
                 const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
                 return timeB - timeA;
@@ -816,26 +1195,117 @@
                 const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString('zh-TW', {
                     year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
                 }) : '剛剛';
+                
+                // 處理多商品顯示 (新舊結構相容)
+                let itemsHtml = '';
+                if(order.items && Array.isArray(order.items)){
+                    itemsHtml = order.items.map(i => `<div class="text-[11px]"><span class="text-nature-forest">${i.itemName}</span> <span class="text-sky-600">x${i.quantity}</span></div>`).join('');
+                } else {
+                    itemsHtml = `<div class="text-[11px]"><span class="text-nature-forest">${order.itemName}</span> <span class="text-sky-600">x${order.quantity}</span></div>`;
+                }
 
                 return `
                 <tr class="hover:bg-white/50 transition-colors">
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-nature-text_light">${dateStr}</td>
-                    <td class="px-4 py-3 text-xs font-bold text-nature-text">${order.itemName}</td>
-                    <td class="px-4 py-3 text-xs font-medium text-nature-text_light">
-                        <i class="ph-light ph-user text-nature-sky_dark"></i> ${order.buyerName} <br>
-                        <span class="text-[10px] opacity-70 ml-3.5">${order.buyerPhone}</span>
+                    <td class="px-3 py-3 text-xs text-nature-text_light leading-tight">
+                        <div class="font-bold text-nature-text mb-0.5">${order.missionName || '未分類'}</div>
+                        ${dateStr}
                     </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-right font-bold text-sky-600">${order.quantity}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-rose-500 font-cursive tracking-wide">NT$ ${Number(order.totalAmount).toLocaleString()}</td>
+                    <td class="px-3 py-3 text-xs font-medium text-nature-text_light">
+                        <i class="ph-fill ph-user-circle text-sky-500"></i> ${order.buyerName} <br>
+                        <span class="text-[10px] opacity-70 ml-3.5">${order.buyerPhone || ''}</span>
+                    </td>
+                    <td class="px-3 py-3">
+                        ${itemsHtml}
+                    </td>
+                    <td class="px-3 py-3 whitespace-nowrap text-sm text-right font-bold text-rose-500 font-cursive tracking-wide">
+                        NT$ ${Number(order.totalAmount || order.totalPoints || 0).toLocaleString()}
+                    </td>
                 </tr>`;
             }).join('');
         };
 
+        // 匯出 Excel 功能 (使用 SheetJS)
+        const exportOrdersToExcel = () => {
+            const filterVal = document.getElementById('missionFilter').value;
+            let filteredOrders = ordersData;
+            let fileName = '所有訂單紀錄.xlsx';
+
+            if(filterVal !== 'all') {
+                filteredOrders = ordersData.filter(o => o.missionName === filterVal);
+                fileName = `${filterVal}_訂單紀錄.xlsx`;
+            }
+
+            if(filteredOrders.length === 0){
+                showToast("目前沒有資料可以匯出喔！", "error");
+                return;
+            }
+
+            // 將巢狀的 Order Items 打平展開為 Excel Row
+            const exportData = [];
+            
+            // 按時間排序 (舊的在上面)
+            const sortedOrders = [...filteredOrders].sort((a, b) => {
+                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return timeA - timeB;
+            });
+
+            sortedOrders.forEach(order => {
+                const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString('zh-TW', {
+                    year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'
+                }) : '';
+
+                if(order.items && Array.isArray(order.items)){
+                    // 新結構：購物車多筆商品
+                    order.items.forEach(item => {
+                        exportData.push({
+                            "任務名稱": order.missionName || '未分類',
+                            "訂購時間": dateStr,
+                            "客戶姓名": order.buyerName,
+                            "聯絡電話": order.buyerPhone,
+                            "商品名稱": item.itemName,
+                            "單價": item.unitPrice,
+                            "訂購數量": item.quantity,
+                            "單品小計": item.subtotal,
+                            "整筆訂單總計": order.totalAmount
+                        });
+                    });
+                } else {
+                    // 舊結構：單筆商品
+                    exportData.push({
+                        "任務名稱": order.missionName || '未分類',
+                        "訂購時間": dateStr,
+                        "客戶姓名": order.buyerName,
+                        "聯絡電話": order.buyerPhone,
+                        "商品名稱": order.itemName,
+                        "單價": order.unitPrice || 0,
+                        "訂購數量": order.quantity || 1,
+                        "單品小計": order.totalAmount || order.totalPoints || 0,
+                        "整筆訂單總計": order.totalAmount || order.totalPoints || 0
+                    });
+                }
+            });
+
+            // 使用 SheetJS 匯出
+            try {
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "訂單明細");
+                XLSX.writeFile(wb, fileName);
+                showToast("Excel 匯出成功！");
+            } catch (err) {
+                console.error(err);
+                showToast("匯出 Excel 失敗", "error");
+            }
+        };
+
+        // --- 權限管理 ---
         const toggleAuth = () => {
             if (isAdmin) { 
                 isAdmin = false; 
+                currentAdminId = null;
                 updateAuthUI(); 
-                showToast("管理員已下班，掰掰。"); 
+                showToast("店長已登出，掰掰。"); 
             } else { 
                 document.getElementById('loginUsername').value = '';
                 document.getElementById('loginPassword').value = '';
@@ -844,32 +1314,38 @@
         };
 
         const checkLogin = async () => {
-            const u = document.getElementById('loginUsername').value;
-            const p = document.getElementById('loginPassword').value;
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value.trim();
             
             if (!u || !p) { 
                 showToast("請輸入完整的帳號密碼喔。", "error"); 
                 return; 
             }
 
-            if (u === 'admin' && p === 'admin123') {
+            const userAccount = accountsData.find(acc => acc.username === u && acc.password === p);
+
+            if (userAccount) {
                 isAdmin = true; 
+                currentAdminId = userAccount.id;
                 closeModal('loginModal'); 
                 updateAuthUI(); 
-                showToast("歡迎回到花園，管理員！");
+                showToast(`歡迎回來，${userAccount.username} 店長！`);
             } else { 
-                showToast("密碼好像不對喔！", "error"); 
+                showToast("帳號或密碼好像不對喔！", "error"); 
             }
         };
 
         const updateAuthUI = () => {
-            document.getElementById('authText').innerText = isAdmin ? "管理員下班" : "花園管理員";
+            document.getElementById('authText').innerText = isAdmin ? "店長登出" : "店長登入";
             document.getElementById('authIcon').className = isAdmin ? "ph-light ph-sign-out text-rose-400 text-lg" : "ph-light ph-user text-lg";
             document.getElementById('adminToolbar').classList.toggle('hidden', !isAdmin);
             document.getElementById('editTitleBtn').classList.toggle('hidden', !isAdmin);
             
             renderItems();
-            if (isAdmin) renderOrdersList();
+            if (isAdmin) {
+                populateMissionFilter();
+                renderOrdersList();
+            }
         };
 
         const closeModal = (id) => document.getElementById(id).classList.add('hidden');
@@ -877,30 +1353,113 @@
         const openItemModal = () => { 
             document.getElementById('itemForm').reset(); 
             document.getElementById('itemId').value = ''; 
-            document.getElementById('itemModalTitle').innerHTML = '<i class="ph-light ph-potted-plant text-nature-grass_dark mr-2"></i> 種植新商品囉！'; 
+            document.getElementById('itemModalTitle').innerHTML = '<i class="ph-fill ph-package text-sky-500 mr-2"></i> 上架新商品囉！'; 
             document.getElementById('itemModal').classList.remove('hidden'); 
         };
 
-        const openOrdersModal = () => {
-            renderOrdersList();
-            document.getElementById('ordersListModal').classList.remove('hidden');
+        // --- 帳號與協作者管理 (沿用) ---
+        const openAccountsModal = () => {
+            renderAccountsList();
+            document.getElementById('accountsListModal').classList.remove('hidden');
+        };
+
+        const renderAccountsList = () => {
+            const tbody = document.getElementById('accountsListBody');
+            if (!accountsData || accountsData.length === 0) return;
+            
+            tbody.innerHTML = accountsData.map(acc => {
+                const isMe = acc.id === currentAdminId;
+                return `
+                <tr class="hover:bg-white/50 transition-colors">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-nature-text">
+                        ${acc.username} ${isMe ? '<span class="ml-2 text-[10px] bg-nature-sky_dark text-sky-900 px-2 py-0.5 rounded-full shadow-sm">自己</span>' : ''}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-nature-text_light font-mono font-bold tracking-widest">
+                        ${acc.password}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm">
+                        <button onclick="openAccountEditModal('${acc.id}')" class="text-amber-500 hover:text-amber-600 bg-white shadow-sm border border-slate-100 p-1.5 rounded-full mr-1 transition-all" title="修改密碼"><i class="ph-light ph-pencil-simple text-base"></i></button>
+                        ${!isMe ? `<button onclick="promptDeleteAccount('${acc.id}')" class="text-rose-400 hover:text-rose-500 bg-white shadow-sm border border-slate-100 p-1.5 rounded-full transition-all" title="刪除"><i class="ph-light ph-trash text-base"></i></button>` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+        };
+
+        const openAccountEditModal = (id = null) => {
+            document.getElementById('accForm').reset();
+            document.getElementById('accId').value = id || '';
+            
+            if (id) {
+                const acc = accountsData.find(a => a.id === id);
+                if (acc) {
+                    document.getElementById('accUsername').value = acc.username;
+                    document.getElementById('accPassword').value = acc.password;
+                    document.getElementById('accUsername').readOnly = true;
+                    document.getElementById('accUsername').classList.add('opacity-60', 'cursor-not-allowed');
+                    document.getElementById('accModalTitle').innerHTML = '<i class="ph-light ph-key text-amber-500 mr-2"></i> 修改密碼';
+                }
+            } else {
+                document.getElementById('accUsername').readOnly = false;
+                document.getElementById('accUsername').classList.remove('opacity-60', 'cursor-not-allowed');
+                document.getElementById('accModalTitle').innerHTML = '<i class="ph-light ph-user-plus text-sky-500 mr-2"></i> 新增協作者';
+            }
+            document.getElementById('accountEditModal').classList.remove('hidden');
+        };
+
+        const saveAccount = async (event) => {
+            event.preventDefault();
+            if (!currentUser || !isAdmin) return;
+
+            const id = document.getElementById('accId').value;
+            const u = document.getElementById('accUsername').value.trim();
+            const p = document.getElementById('accPassword').value.trim();
+
+            if (!id && accountsData.some(a => a.username === u)) {
+                showToast("這個帳號名稱已經有人使用囉！", "error");
+                return;
+            }
+
+            closeModal('accountEditModal');
+            try {
+                if (id) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', id), { password: p });
+                    showToast("密碼修改成功！");
+                } else {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), {
+                        username: u, password: p, role: 'admin', createdAt: serverTimestamp()
+                    });
+                    showToast("新增協作者成功！");
+                }
+            } catch (error) { showToast("儲存失敗，請重試！", "error"); }
+        };
+
+        const promptDeleteAccount = (id) => {
+            document.getElementById('deleteAccountId').value = id;
+            document.getElementById('deleteAccountModal').classList.remove('hidden');
+        };
+
+        const confirmDeleteAccount = async () => {
+            if (!currentUser || !isAdmin) return;
+            const id = document.getElementById('deleteAccountId').value;
+            closeModal('deleteAccountModal');
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', id));
+                showToast("協作者帳號已移除。");
+            } catch (error) { showToast("移除失敗，請再試一次。", "error"); }
         };
 
         let toastTimeout;
         const showToast = (msg, type = 'success') => {
             document.getElementById('toastMessage').innerText = msg;
-            
             const icon = document.getElementById('toastIcon');
             if(type === 'success') {
-                icon.className = "ph-fill ph-check-circle text-nature-grass_dark text-2xl mr-2";
+                icon.className = "ph-fill ph-check-circle text-sky-400 text-2xl mr-2";
             } else {
                 icon.className = "ph-fill ph-warning-circle text-rose-500 text-2xl mr-2";
             }
-
             const toast = document.getElementById('toast');
             toast.classList.remove('translate-y-32', 'opacity-0'); 
             toast.classList.add('translate-y-0', 'opacity-100');
-            
             clearTimeout(toastTimeout); 
             toastTimeout = setTimeout(() => { 
                 toast.classList.remove('translate-y-0', 'opacity-100'); 
@@ -911,9 +1470,10 @@
         Object.assign(window, { 
             toggleAuth, checkLogin, closeModal, 
             openItemModal, editItem, saveItem, promptDelete, confirmDelete, 
-            openOrderModal, calculateTotal, submitOrder,
-            openOrdersModal, handleSearch,
-            openTitleModal, saveWebsiteTitle
+            addToCart, updateCartQty, removeCartItem, openCartModal, submitCheckout,
+            openOrdersModal, handleSearch, exportOrdersToExcel,
+            openTitleModal, saveWebsiteTitle, openMissionModal, saveMissionSettings,
+            openAccountsModal, openAccountEditModal, saveAccount, promptDeleteAccount, confirmDeleteAccount
         });
 
         initSystem();
