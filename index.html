@@ -6,10 +6,10 @@
     <title id="pageTitle">可愛物品訂購小舖</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons (使用 Light 細線體) -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- 引入穩定的 Google Fonts: Klee One (芫荽體的基礎字體，風格一致且保證不破圖) -->
+    <!-- 引入穩定的 Google Fonts: Klee One -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
     <!-- 引入 SheetJS 用於匯出 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-    <!-- 定義 Tailwind 自訂樣式，打造水彩大自然風格 -->
+    <!-- 定義 Tailwind 自訂樣式 -->
     <script>
         tailwind.config = {
             theme: {
@@ -28,17 +28,17 @@
                     },
                     colors: {
                         nature: {
-                            sky: '#e0f2fe',      // 水彩天空藍
-                            sky_dark: '#bae6fd', // 深一點的天空藍
-                            cloud: '#ffffff',    // 雲朵白
-                            grass: '#dcfce7',    // 水彩嫩草綠
-                            grass_dark: '#86efac',// 深草綠
-                            forest: '#166534',   // 森林深綠 (用於重要文字)
-                            flower_y: '#fef08a', // 小花黃
-                            flower_o: '#fdba74', // 小花橘
-                            flower_b: '#7dd3fc', // 小花藍
-                            text: '#334155',     // 柔和的深藍灰 (主要文字)
-                            text_light: '#64748b'// 淺藍灰 (次要文字)
+                            sky: '#e0f2fe',      
+                            sky_dark: '#bae6fd', 
+                            cloud: '#ffffff',    
+                            grass: '#dcfce7',    
+                            grass_dark: '#86efac',
+                            forest: '#166534',   
+                            flower_y: '#fef08a', 
+                            flower_o: '#fdba74', 
+                            flower_b: '#7dd3fc', 
+                            text: '#334155',     
+                            text_light: '#64748b'
                         }
                     }
                 }
@@ -48,26 +48,21 @@
 
     <style type="text/tailwindcss">
         @layer components {
-            /* 水彩風半透明按鈕 */
             .btn-story {
                 @apply px-4 py-2 rounded-full font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_15px_-3px_rgba(0,0,0,0.1)] active:translate-y-0 active:shadow-sm flex items-center justify-center text-sm backdrop-blur-sm;
             }
-            /* 水彩風毛玻璃卡片 */
             .card-story {
                 @apply bg-white/70 backdrop-blur-md border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(134,239,172,0.2)] hover:bg-white/90 rounded-3xl transition-all duration-500 overflow-hidden;
             }
-            /* 柔和輸入框 */
             .input-story {
                 @apply w-full px-3 py-2 bg-white/60 border-2 border-white focus:bg-white rounded-2xl focus:outline-none focus:border-nature-sky_dark focus:ring-4 focus:ring-nature-sky/40 transition-all text-nature-text placeholder-nature-text_light/60 font-medium text-sm shadow-sm;
             }
-            /* 結帳步驟卡片 */
             .quest-step {
                 @apply bg-white/60 border border-white shadow-sm p-4 rounded-2xl relative;
             }
         }
 
         body { 
-            /* 模擬圖片中的水彩漸層：上天空、中白雲、下草地 */
             background-color: #e0f2fe;
             background-image: linear-gradient(180deg, #e0f2fe 0%, #ffffff 50%, #f0fdf4 85%, #dcfce7 100%);
             background-attachment: fixed;
@@ -97,7 +92,6 @@
             z-index: 10;
         }
 
-        /* 水彩暈染動畫裝飾 */
         .watercolor-blob {
             position: absolute;
             filter: blur(40px);
@@ -132,7 +126,6 @@
                     <div class="bg-white/80 p-2 rounded-2xl text-nature-sky_dark shadow-sm transition-transform group-hover:-translate-y-1 duration-500 border border-white flex items-center justify-center">
                         <i class="ph-fill ph-storefront text-3xl text-rose-400 drop-shadow-sm"></i>
                     </div>
-                    <!-- 網站標題與編輯按鈕 -->
                     <div class="flex items-center">
                         <div class="story-header">
                             <span class="story-header-sub">Online Shop</span>
@@ -144,12 +137,10 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-4">
-                    <!-- 購物車按鈕 -->
                     <button onclick="openCartModal()" class="relative text-nature-forest hover:text-rose-500 transition-colors p-2 flex items-center group">
                         <i class="ph-light ph-shopping-cart text-3xl group-hover:scale-110 transition-transform"></i>
                         <span id="cartBadge" class="absolute top-0 -right-1 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">0</span>
                     </button>
-                    
                     <button id="authBtn" onclick="toggleAuth()" class="bg-white/50 hover:bg-white text-nature-text_light hover:text-nature-forest px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl flex items-center space-x-1.5 text-xs font-semibold transition-all border border-white shadow-sm">
                         <i class="ph-light ph-user text-lg" id="authIcon"></i>
                         <span id="authText" class="hidden sm:inline">店長登入</span>
@@ -186,13 +177,13 @@
             <!-- 管理員工具列 -->
             <div id="adminToolbar" class="hidden flex flex-wrap items-center bg-white/60 backdrop-blur-md border border-white p-2 rounded-full shadow-sm w-full md:w-auto gap-2">
                 <span class="text-nature-forest font-bold mx-3 hidden lg:flex items-center whitespace-nowrap text-xs">
-                    <i class="ph-light ph-crown text-amber-500 mr-1.5 text-lg"></i> 店長管理區
+                    <i class="ph-light ph-crown text-amber-500 mr-1.5 text-lg"></i> <span id="welcomeAdminRole">店長管理區</span>
                 </span>
                 <div class="flex space-x-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
                     <button onclick="openMissionModal()" class="btn-story bg-amber-100/50 text-amber-700 hover:bg-amber-100 border border-white px-3 py-1.5 whitespace-nowrap">
                         <i class="ph-light ph-flag text-base mr-1"></i> 購物任務設定
                     </button>
-                    <button onclick="openAccountsModal()" class="btn-story bg-slate-100/50 text-slate-700 hover:bg-slate-100 border border-white px-3 py-1.5 whitespace-nowrap hidden sm:flex">
+                    <button id="btnAccountsManage" onclick="openAccountsModal()" class="btn-story bg-slate-100/50 text-slate-700 hover:bg-slate-100 border border-white px-3 py-1.5 whitespace-nowrap hidden sm:flex">
                         <i class="ph-light ph-users text-base mr-1"></i> 協作者
                     </button>
                     <button onclick="openOrdersModal()" class="btn-story bg-nature-sky/50 text-sky-700 hover:bg-nature-sky border border-white px-3 py-1.5 whitespace-nowrap">
@@ -263,7 +254,7 @@
         </div>
     </div>
 
-    <!-- 購物任務設定視窗 (Mission Management) -->
+    <!-- 購物任務設定視窗 -->
     <div id="missionModal" class="fixed inset-0 bg-slate-900/20 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4">
         <div class="card-story p-6 max-w-sm w-full relative">
             <button onclick="closeModal('missionModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors z-10">
@@ -406,25 +397,23 @@
                 <h2 class="font-cursive text-3xl text-nature-forest mt-2 font-bold drop-shadow-sm">您的購物車</h2>
             </div>
             
-            <!-- 購物車內容區 -->
             <div class="flex-grow overflow-y-auto custom-scrollbar pr-2 mb-4 relative z-10">
-                <div id="cartItemsList" class="space-y-3">
-                    <!-- Cart items will be injected here -->
-                </div>
+                <div id="cartItemsList" class="space-y-3"></div>
                 <div id="cartEmptyMsg" class="hidden text-center py-8 opacity-60">
                     <i class="ph-light ph-shopping-cart text-5xl mb-2 block"></i>
                     <p class="font-bold">購物車裡面空空的喔！</p>
                 </div>
             </div>
 
-            <!-- 結帳表單 -->
             <form id="checkoutForm" onsubmit="submitCheckout(event)" class="space-y-4 relative z-10 border-t border-rose-100 pt-4 mt-auto">
-                
                 <div class="quest-step bg-white/80 border-rose-100">
                     <label class="block font-bold text-nature-text text-sm mb-2 mt-1">🌸 請填寫您的聯絡資訊</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="orderBuyerName" required class="input-story bg-white border border-slate-200 text-xs py-1.5" placeholder="姓名...">
-                        <input type="tel" id="orderBuyerPhone" required class="input-story bg-white border border-slate-200 text-xs py-1.5" placeholder="聯絡電話...">
+                    <div class="space-y-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="orderBuyerName" required class="input-story bg-white border border-slate-200 text-xs py-1.5" placeholder="姓名...">
+                            <input type="tel" id="orderBuyerPhone" required class="input-story bg-white border border-slate-200 text-xs py-1.5" placeholder="聯絡電話...">
+                        </div>
+                        <input type="email" id="orderBuyerEmail" required class="input-story bg-white border border-slate-200 text-xs py-1.5 w-full" placeholder="電子郵件信箱...">
                     </div>
                 </div>
 
@@ -453,15 +442,17 @@
                     </h2>
                 </div>
                 
-                <!-- 篩選與匯出區塊 -->
-                <div class="flex items-center space-x-2 bg-white/60 p-1.5 rounded-xl border border-white shadow-sm">
-                    <i class="ph-light ph-funnel text-nature-text_light ml-2"></i>
-                    <select id="missionFilter" onchange="renderOrdersList()" class="bg-transparent border-none text-sm font-bold text-nature-text focus:ring-0 outline-none pr-6 cursor-pointer">
-                        <option value="all">所有任務紀錄</option>
-                        <!-- Options generated by JS -->
-                    </select>
-                    <button onclick="exportOrdersToExcel()" class="btn-story bg-green-500 text-white hover:bg-green-600 px-3 py-1.5 ml-2 shadow-sm whitespace-nowrap">
-                        <i class="ph-bold ph-file-xls mr-1"></i> 匯出 Excel
+                <!-- 篩選與匯出區塊 (美化漏斗篩選器) -->
+                <div class="flex items-center space-x-2">
+                    <div class="relative flex items-center bg-white border border-slate-200 shadow-sm rounded-full px-4 py-1.5 hover:bg-slate-50 transition-colors w-40 sm:w-48">
+                        <i class="ph-light ph-funnel text-slate-400 text-lg mr-2"></i>
+                        <select id="missionFilter" onchange="renderOrdersList()" class="appearance-none bg-transparent border-none text-sm font-bold text-slate-700 focus:ring-0 outline-none w-full cursor-pointer z-10 pr-4">
+                            <option value="all">所有任務紀錄</option>
+                        </select>
+                        <i class="ph-bold ph-caret-down text-slate-400 absolute right-3 pointer-events-none text-xs"></i>
+                    </div>
+                    <button onclick="exportOrdersToExcel()" class="btn-story bg-green-500 text-white hover:bg-green-600 px-3 py-1.5 ml-1 shadow-sm whitespace-nowrap">
+                        <i class="ph-bold ph-file-xls mr-1 text-lg"></i> 匯出
                     </button>
                 </div>
             </div>
@@ -473,7 +464,8 @@
                             <th class="px-3 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tl-xl">訂購時間 / 任務</th>
                             <th class="px-3 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">客戶資訊</th>
                             <th class="px-3 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">購買明細</th>
-                            <th class="px-3 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tr-xl">訂單總計</th>
+                            <th class="px-3 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider">訂單總計</th>
+                            <th class="px-3 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tr-xl">操作</th>
                         </tr>
                     </thead>
                     <tbody id="ordersListBody" class="divide-y divide-white font-medium text-nature-text">
@@ -487,7 +479,63 @@
         </div>
     </div>
 
-    <!-- 刪除確認視窗 -->
+    <!-- 編輯訂單視窗 -->
+    <div id="orderEditModal" class="fixed inset-0 bg-slate-900/20 z-[70] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-6 sm:p-8 max-w-sm w-full relative">
+            <button onclick="closeModal('orderEditModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors z-10">
+                <i class="ph-light ph-x text-xl"></i>
+            </button>
+            <div class="story-header mb-6">
+                <span class="story-header-sub">Edit Order</span>
+                <h2 class="font-cursive text-3xl text-nature-forest flex items-center">
+                    <i class="ph-light ph-pencil-simple text-amber-500 mr-2"></i> 修改訂單資訊
+                </h2>
+            </div>
+            
+            <form id="orderEditForm" onsubmit="saveOrderEdit(event)" class="space-y-4">
+                <input type="hidden" id="editOrderId">
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">客戶姓名 <span class="text-rose-400">*</span></label>
+                    <input type="text" id="editOrderName" required class="input-story bg-white/80">
+                </div>
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">聯絡電話 <span class="text-rose-400">*</span></label>
+                    <input type="tel" id="editOrderPhone" required class="input-story bg-white/80">
+                </div>
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">電子郵件 <span class="text-rose-400">*</span></label>
+                    <input type="email" id="editOrderEmail" required class="input-story bg-white/80">
+                </div>
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">訂單總金額 (NT$) <span class="text-rose-400">*</span></label>
+                    <input type="number" id="editOrderTotal" min="0" required class="input-story font-bold text-rose-500 bg-white/80">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full btn-story bg-amber-200 text-amber-900 hover:bg-amber-300 py-2.5 text-sm flex justify-center items-center shadow-md">
+                        <i class="ph-bold ph-check mr-2 text-lg"></i> 儲存修改
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 刪除訂單確認視窗 -->
+    <div id="deleteOrderModal" class="fixed inset-0 bg-slate-900/20 z-[70] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="card-story p-8 max-w-sm w-full text-center">
+            <div class="mx-auto w-16 h-16 bg-rose-100 border border-white rounded-full flex items-center justify-center mb-4 text-rose-400 shadow-sm">
+                <i class="ph-light ph-receipt-x text-3xl"></i>
+            </div>
+            <h2 class="font-cursive text-3xl mb-2 text-nature-forest">真的要刪除訂單嗎？</h2>
+            <p class="text-nature-text_light text-xs mb-6 font-medium bg-white/50 p-3 rounded-xl border border-white">刪除後，訂單內的商品數量會<strong class="text-rose-500">自動加回庫存</strong>中喔！</p>
+            <input type="hidden" id="deleteOrderId">
+            <div class="flex justify-center space-x-3">
+                <button onclick="closeModal('deleteOrderModal')" class="btn-story flex-1 bg-white border border-slate-200 text-nature-text hover:bg-slate-50">先不要</button>
+                <button onclick="confirmDeleteOrder()" class="btn-story flex-1 bg-rose-400 text-white hover:bg-rose-500 shadow-sm">確認刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除商品確認視窗 -->
     <div id="deleteModal" class="fixed inset-0 bg-slate-900/20 z-[70] hidden flex items-center justify-center backdrop-blur-sm p-4">
         <div class="card-story p-8 max-w-sm w-full text-center">
             <div class="mx-auto w-16 h-16 bg-rose-100 border border-white rounded-full flex items-center justify-center mb-4 text-rose-400 shadow-sm">
@@ -523,12 +571,11 @@
                     <thead class="sticky top-0 bg-white/80 backdrop-blur-sm rounded-t-xl z-10">
                         <tr>
                             <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tl-xl">帳號名稱</th>
-                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">登入密碼</th>
+                            <th class="px-4 py-3 text-left text-[11px] font-bold text-nature-text_light uppercase tracking-wider">權限角色</th>
                             <th class="px-4 py-3 text-right text-[11px] font-bold text-nature-text_light uppercase tracking-wider rounded-tr-xl">操作</th>
                         </tr>
                     </thead>
                     <tbody id="accountsListBody" class="divide-y divide-white font-medium text-nature-text">
-                        <!-- Accounts will be injected here -->
                     </tbody>
                 </table>
             </div>
@@ -598,7 +645,7 @@
         let firebaseApp, auth, db, currentUser;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-storybook-app';
         
-   const firebaseConfig = {
+      const firebaseConfig = {
   apiKey: "AIzaSyCXZpd2BzuDe-jaKA2sClziAjnDhZLAWdM",
   authDomain: "sell-7cf41.firebaseapp.com",
   projectId: "sell-7cf41",
@@ -610,7 +657,7 @@
 
         // 應用程式狀態
         let isAdmin = false;
-        let currentAdminId = null; 
+        let currentAdminAccount = null; // 紀錄完整管理員物件 { id, username, role }
         let itemsData = [];
         let ordersData = [];
         let accountsData = []; 
@@ -620,10 +667,11 @@
         let globalSettings = { 
             title: '可愛物品訂購小舖',
             missionName: '',
-            isMissionOpen: false 
+            isMissionOpen: false,
+            creatorId: null // 記錄開啟任務的協作者 ID
         }; 
 
-        // 購物車資料 [{ id, title, price, qty, stock, maxStock }]
+        // 購物車資料
         let cart = []; 
 
         const initSystem = async () => {
@@ -658,7 +706,7 @@
                     globalSettings = { ...globalSettings, ...docSnap.data() };
                 }
                 updateGlobalUI();
-                renderItems(); // 狀態改變可能影響按鈕
+                renderItems(); 
             });
 
             const itemsRef = collection(db, 'artifacts', appId, 'public', 'data', 'items');
@@ -666,24 +714,21 @@
                 itemsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 document.getElementById('loadingIndicator').classList.add('hidden');
                 
-                // 同步更新購物車內庫存
                 cart.forEach(cItem => {
                     const dbItem = itemsData.find(i => i.id === cItem.id);
                     if(dbItem) cItem.maxStock = dbItem.stock;
                 });
                 
                 renderItems();
-                if(!document.getElementById('cartModal').classList.contains('hidden')){
-                    renderCart();
-                }
-            }, (error) => { console.error("Error fetching items:", error); });
+                if(!document.getElementById('cartModal').classList.contains('hidden')) renderCart();
+            });
 
             const accountsRef = collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
             onSnapshot(accountsRef, async (snapshot) => {
                 if (snapshot.empty) {
                     try {
                         await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), {
-                            username: 'admin', password: 'admin123', role: 'admin', createdAt: serverTimestamp()
+                            username: 'admin', password: 'admin123', role: 'superadmin', createdAt: serverTimestamp()
                         });
                     } catch(e) {}
                 } else {
@@ -710,7 +755,6 @@
             if(navTitleEl) navTitleEl.innerText = globalSettings.title;
             if(footerTitleEl) footerTitleEl.innerText = globalSettings.title;
 
-            // 更新購物任務狀態橫幅
             const banner = document.getElementById('missionBanner');
             const statusText = document.getElementById('missionStatusText');
             const icon = document.getElementById('missionIcon');
@@ -741,7 +785,6 @@
             } catch (e) { showToast("修改失敗", "error"); }
         };
 
-        // --- 購物任務管理 ---
         const openMissionModal = () => {
             document.getElementById('missionNameInput').value = globalSettings.missionName || '';
             document.getElementById('missionStatusToggle').checked = globalSettings.isMissionOpen;
@@ -760,12 +803,12 @@
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { 
                     missionName: name,
-                    isMissionOpen: isOpen
+                    isMissionOpen: isOpen,
+                    creatorId: currentAdminAccount ? currentAdminAccount.id : null
                 }, { merge: true });
                 closeModal('missionModal');
                 showToast(isOpen ? "購物任務已開放！" : "已關閉購物功能。");
                 
-                // 如果關閉了，清空大家的購物車
                 if(!isOpen) { cart = []; updateCartBadge(); }
             } catch (e) { showToast("儲存失敗", "error"); }
         };
@@ -777,7 +820,6 @@
             return url; 
         };
 
-        // --- 渲染物品列表 ---
         const renderItems = () => {
             const grid = document.getElementById('itemsGrid');
             grid.innerHTML = '';
@@ -820,7 +862,6 @@
                         orderBtnText = "已售完";
                         orderBtnDisabled = "disabled";
                     } else {
-                        // 檢查購物車內是否已經加滿
                         const cartItem = cart.find(c => c.id === item.id);
                         if(cartItem && cartItem.qty >= item.stock) {
                             orderBtnClass = "bg-amber-100 text-amber-500 cursor-not-allowed border border-white";
@@ -872,9 +913,7 @@
                             <div class="flex justify-between items-end mt-auto pt-4 border-t border-white">
                                 <div>
                                     <p class="text-[11px] text-nature-text_light font-bold mb-0.5">商品單價</p>
-                                    <p class="text-xl font-bold text-rose-500 font-cursive tracking-wider">
-                                        NT$ ${Number(itemPrice).toLocaleString()}
-                                    </p>
+                                    <p class="text-xl font-bold text-rose-500 font-cursive tracking-wider">NT$ ${Number(itemPrice).toLocaleString()}</p>
                                 </div>
                                 <button onclick="addToCart('${item.id}')" ${orderBtnDisabled} class="px-4 py-2 rounded-full font-bold flex items-center text-xs transition-all duration-300 ${orderBtnClass}">
                                     ${orderBtnText}
@@ -892,13 +931,12 @@
             renderItems(); 
         };
 
-        // --- 購物車系統 (Cart System) ---
+        // --- 購物車系統 ---
         const updateCartBadge = () => {
             const badge = document.getElementById('cartBadge');
             const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
             badge.innerText = totalQty;
             
-            // 動畫提醒
             if(totalQty > 0){
                 badge.classList.add('animate-bounce');
                 setTimeout(() => badge.classList.remove('animate-bounce'), 1000);
@@ -924,17 +962,12 @@
                 }
             } else {
                 cart.push({
-                    id: item.id,
-                    title: item.title,
-                    price: itemPrice,
-                    qty: 1,
-                    maxStock: item.stock,
-                    imageUrl: item.imageUrl
+                    id: item.id, title: item.title, price: itemPrice, qty: 1, maxStock: item.stock, imageUrl: item.imageUrl
                 });
                 showToast(`已將 ${item.title} 加入購物車`);
             }
             updateCartBadge();
-            renderItems(); // 重新渲染以更新「購物車已達上限」按鈕狀態
+            renderItems();
         };
 
         const openCartModal = () => {
@@ -964,13 +997,10 @@
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
 
                 list.innerHTML = cart.map((item, index) => {
-                    // 若後台庫存變少，自動修正購物車數量
                     if(item.qty > item.maxStock) item.qty = item.maxStock;
                     
                     const subtotal = item.price * item.qty;
                     totalAmount += subtotal;
-                    
-                    // 如果被改到0，建議移除(由下方邏輯處理或使用者自刪)
                     const isWarning = item.maxStock === 0;
 
                     return `
@@ -1004,17 +1034,13 @@
             const newQty = item.qty + delta;
             if (newQty > 0 && newQty <= item.maxStock) {
                 item.qty = newQty;
-                renderCart();
-                updateCartBadge();
-                renderItems();
+                renderCart(); updateCartBadge(); renderItems();
             }
         };
 
         const removeCartItem = (index) => {
             cart.splice(index, 1);
-            renderCart();
-            updateCartBadge();
-            renderItems();
+            renderCart(); updateCartBadge(); renderItems();
         };
 
         const submitCheckout = async (event) => {
@@ -1023,28 +1049,25 @@
 
             const buyerName = document.getElementById('orderBuyerName').value.trim();
             const buyerPhone = document.getElementById('orderBuyerPhone').value.trim();
+            const buyerEmail = document.getElementById('orderBuyerEmail').value.trim();
             const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-            // 雙重檢查庫存
             for (let cItem of cart) {
                 const dbItem = itemsData.find(i => i.id === cItem.id);
                 if(!dbItem || dbItem.stock < cItem.qty) {
-                    showToast(`抱歉，[${cItem.title}] 庫存不足或已下架，請重新調整數量。`, "error");
-                    renderCart();
-                    return;
+                    showToast(`抱歉，[${cItem.title}] 庫存不足或已下架。`, "error");
+                    renderCart(); return;
                 }
             }
 
             const orderPayload = {
-                missionName: globalSettings.missionName || '未命名任務', // 記錄綁定的任務
+                missionName: globalSettings.missionName || '未命名任務',
+                missionCreatorId: globalSettings.creatorId || null, 
                 buyerName: buyerName,
                 buyerPhone: buyerPhone,
+                buyerEmail: buyerEmail,
                 items: cart.map(c => ({
-                    itemId: c.id,
-                    itemName: c.title,
-                    unitPrice: c.price,
-                    quantity: c.qty,
-                    subtotal: c.price * c.qty
+                    itemId: c.id, itemName: c.title, unitPrice: c.price, quantity: c.qty, subtotal: c.price * c.qty
                 })),
                 totalAmount: totalAmount,
                 createdAt: serverTimestamp()
@@ -1055,10 +1078,8 @@
             btn.disabled = true;
             
             try {
-                // 寫入訂單
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), orderPayload);
                 
-                // 扣除庫存 (使用 Promise.all 並行更新)
                 const updatePromises = cart.map(cItem => {
                     const dbItem = itemsData.find(i => i.id === cItem.id);
                     const newStock = dbItem.stock - cItem.qty;
@@ -1066,11 +1087,8 @@
                 });
                 await Promise.all(updatePromises);
 
-                showToast(`結帳成功！訂單總金額為 NT$ ${totalAmount.toLocaleString()}。`);
-                cart = []; // 清空購物車
-                updateCartBadge();
-                closeModal('cartModal');
-                document.getElementById('checkoutForm').reset();
+                showToast(`訂單送出成功！總金額為 NT$ ${totalAmount.toLocaleString()}。`);
+                cart = []; updateCartBadge(); closeModal('cartModal'); document.getElementById('checkoutForm').reset();
                 
             } catch (error) {
                 console.error("Order failed:", error);
@@ -1106,10 +1124,7 @@
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'items'), payload);
                     showToast("新商品成功上架囉！");
                 }
-            } catch (error) { 
-                console.error(error);
-                showToast("發生錯誤，請重試！", "error"); 
-            }
+            } catch (error) { showToast("發生錯誤，請重試！", "error"); }
         };
 
         const editItem = (id) => {
@@ -1140,10 +1155,7 @@
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'items', id)); 
                 showToast("商品已從架上移除了。");
-            } catch (error) { 
-                console.error(error);
-                showToast("移除失敗，請再試一次。", "error"); 
-            }
+            } catch (error) { showToast("移除失敗，請再試一次。", "error"); }
         };
 
         // --- 訂單管理與匯出 ---
@@ -1153,7 +1165,6 @@
             document.getElementById('ordersListModal').classList.remove('hidden');
         };
 
-        // 自動生成過濾器選項 (抓取所有曾存在的任務名稱)
         const populateMissionFilter = () => {
             const filter = document.getElementById('missionFilter');
             const missions = new Set();
@@ -1166,6 +1177,9 @@
             });
             if(missions.has(currentValue)) filter.value = currentValue;
         };
+
+        // 判斷當前使用者是否為主要管理員 (Super Admin)
+        const isSuperAdmin = () => currentAdminAccount?.role === 'superadmin' || currentAdminAccount?.username === 'admin';
 
         const renderOrdersList = () => {
             const tbody = document.getElementById('ordersListBody');
@@ -1196,13 +1210,15 @@
                     year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
                 }) : '剛剛';
                 
-                // 處理多商品顯示 (新舊結構相容)
                 let itemsHtml = '';
                 if(order.items && Array.isArray(order.items)){
                     itemsHtml = order.items.map(i => `<div class="text-[11px]"><span class="text-nature-forest">${i.itemName}</span> <span class="text-sky-600">x${i.quantity}</span></div>`).join('');
                 } else {
                     itemsHtml = `<div class="text-[11px]"><span class="text-nature-forest">${order.itemName}</span> <span class="text-sky-600">x${order.quantity}</span></div>`;
                 }
+
+                // 權限檢查：SuperAdmin 可看全部；Collaborator 只能修改/刪除自己任務的訂單
+                const canEdit = isSuperAdmin() || (currentAdminAccount && order.missionCreatorId === currentAdminAccount.id);
 
                 return `
                 <tr class="hover:bg-white/50 transition-colors">
@@ -1212,7 +1228,8 @@
                     </td>
                     <td class="px-3 py-3 text-xs font-medium text-nature-text_light">
                         <i class="ph-fill ph-user-circle text-sky-500"></i> ${order.buyerName} <br>
-                        <span class="text-[10px] opacity-70 ml-3.5">${order.buyerPhone || ''}</span>
+                        <span class="text-[10px] opacity-70 ml-3.5"><i class="ph-fill ph-phone mr-1"></i>${order.buyerPhone || ''}</span><br>
+                        <span class="text-[10px] opacity-70 ml-3.5"><i class="ph-fill ph-envelope-simple mr-1"></i>${order.buyerEmail || '未提供'}</span>
                     </td>
                     <td class="px-3 py-3">
                         ${itemsHtml}
@@ -1220,11 +1237,81 @@
                     <td class="px-3 py-3 whitespace-nowrap text-sm text-right font-bold text-rose-500 font-cursive tracking-wide">
                         NT$ ${Number(order.totalAmount || order.totalPoints || 0).toLocaleString()}
                     </td>
+                    <td class="px-3 py-3 whitespace-nowrap text-right">
+                        ${canEdit ? `
+                        <button onclick="openOrderEditModal('${order.id}')" class="text-amber-500 hover:text-amber-600 bg-white shadow-sm border border-slate-100 p-1.5 rounded-full mr-1 transition-transform hover:scale-110" title="修改"><i class="ph-light ph-pencil-simple text-base"></i></button>
+                        <button onclick="promptDeleteOrder('${order.id}')" class="text-rose-400 hover:text-rose-500 bg-white shadow-sm border border-slate-100 p-1.5 rounded-full transition-transform hover:scale-110" title="刪除並返還庫存"><i class="ph-light ph-trash text-base"></i></button>
+                        ` : `<span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded border border-slate-200">無權限</span>`}
+                    </td>
                 </tr>`;
             }).join('');
         };
 
-        // 匯出 Excel 功能 (使用 SheetJS)
+        // 訂單修改與刪除
+        const openOrderEditModal = (id) => {
+            const order = ordersData.find(o => o.id === id);
+            if (!order) return;
+            document.getElementById('editOrderId').value = order.id;
+            document.getElementById('editOrderName').value = order.buyerName;
+            document.getElementById('editOrderPhone').value = order.buyerPhone || '';
+            document.getElementById('editOrderEmail').value = order.buyerEmail || '';
+            document.getElementById('editOrderTotal').value = order.totalAmount || order.totalPoints || 0;
+            document.getElementById('orderEditModal').classList.remove('hidden');
+        };
+
+        const saveOrderEdit = async (event) => {
+            event.preventDefault();
+            const id = document.getElementById('editOrderId').value;
+            const payload = {
+                buyerName: document.getElementById('editOrderName').value.trim(),
+                buyerPhone: document.getElementById('editOrderPhone').value.trim(),
+                buyerEmail: document.getElementById('editOrderEmail').value.trim(),
+                totalAmount: Number(document.getElementById('editOrderTotal').value)
+            };
+            closeModal('orderEditModal');
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', id), payload);
+                showToast("訂單已更新！");
+            } catch (error) { showToast("更新失敗", "error"); }
+        };
+
+        const promptDeleteOrder = (id) => {
+            document.getElementById('deleteOrderId').value = id;
+            document.getElementById('deleteOrderModal').classList.remove('hidden');
+        };
+
+        const confirmDeleteOrder = async () => {
+            const id = document.getElementById('deleteOrderId').value;
+            closeModal('deleteOrderModal');
+            
+            const order = ordersData.find(o => o.id === id);
+            if(!order) return;
+
+            try {
+                // 自動返還庫存
+                if(order.items && Array.isArray(order.items)) {
+                    const restorePromises = order.items.map(item => {
+                        const dbItem = itemsData.find(i => i.id === item.itemId);
+                        if(dbItem) {
+                            return updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'items', dbItem.id), {
+                                stock: dbItem.stock + item.quantity
+                            });
+                        }
+                    });
+                    await Promise.all(restorePromises);
+                } else if (order.itemId) {
+                    const dbItem = itemsData.find(i => i.id === order.itemId);
+                    if(dbItem) {
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'items', dbItem.id), {
+                            stock: dbItem.stock + (order.quantity || 1)
+                        });
+                    }
+                }
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', id));
+                showToast("訂單已刪除，並自動歸還商品庫存。");
+            } catch (error) { showToast("刪除失敗", "error"); }
+        };
+
         const exportOrdersToExcel = () => {
             const filterVal = document.getElementById('missionFilter').value;
             let filteredOrders = ordersData;
@@ -1236,14 +1323,10 @@
             }
 
             if(filteredOrders.length === 0){
-                showToast("目前沒有資料可以匯出喔！", "error");
-                return;
+                showToast("目前沒有資料可以匯出喔！", "error"); return;
             }
 
-            // 將巢狀的 Order Items 打平展開為 Excel Row
             const exportData = [];
-            
-            // 按時間排序 (舊的在上面)
             const sortedOrders = [...filteredOrders].sort((a, b) => {
                 const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
                 const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
@@ -1256,54 +1339,39 @@
                 }) : '';
 
                 if(order.items && Array.isArray(order.items)){
-                    // 新結構：購物車多筆商品
                     order.items.forEach(item => {
                         exportData.push({
-                            "任務名稱": order.missionName || '未分類',
-                            "訂購時間": dateStr,
-                            "客戶姓名": order.buyerName,
-                            "聯絡電話": order.buyerPhone,
-                            "商品名稱": item.itemName,
-                            "單價": item.unitPrice,
-                            "訂購數量": item.quantity,
-                            "單品小計": item.subtotal,
-                            "整筆訂單總計": order.totalAmount
+                            "任務名稱": order.missionName || '未分類', "訂購時間": dateStr,
+                            "客戶姓名": order.buyerName, "聯絡電話": order.buyerPhone, "電子郵件": order.buyerEmail || '',
+                            "商品名稱": item.itemName, "單價": item.unitPrice,
+                            "訂購數量": item.quantity, "單品小計": item.subtotal, "整筆訂單總計": order.totalAmount
                         });
                     });
                 } else {
-                    // 舊結構：單筆商品
                     exportData.push({
-                        "任務名稱": order.missionName || '未分類',
-                        "訂購時間": dateStr,
-                        "客戶姓名": order.buyerName,
-                        "聯絡電話": order.buyerPhone,
-                        "商品名稱": order.itemName,
-                        "單價": order.unitPrice || 0,
-                        "訂購數量": order.quantity || 1,
-                        "單品小計": order.totalAmount || order.totalPoints || 0,
+                        "任務名稱": order.missionName || '未分類', "訂購時間": dateStr,
+                        "客戶姓名": order.buyerName, "聯絡電話": order.buyerPhone, "電子郵件": order.buyerEmail || '',
+                        "商品名稱": order.itemName, "單價": order.unitPrice || 0,
+                        "訂購數量": order.quantity || 1, "單品小計": order.totalAmount || order.totalPoints || 0,
                         "整筆訂單總計": order.totalAmount || order.totalPoints || 0
                     });
                 }
             });
 
-            // 使用 SheetJS 匯出
             try {
                 const ws = XLSX.utils.json_to_sheet(exportData);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "訂單明細");
                 XLSX.writeFile(wb, fileName);
                 showToast("Excel 匯出成功！");
-            } catch (err) {
-                console.error(err);
-                showToast("匯出 Excel 失敗", "error");
-            }
+            } catch (err) { showToast("匯出 Excel 失敗", "error"); }
         };
 
         // --- 權限管理 ---
         const toggleAuth = () => {
             if (isAdmin) { 
                 isAdmin = false; 
-                currentAdminId = null;
+                currentAdminAccount = null;
                 updateAuthUI(); 
                 showToast("店長已登出，掰掰。"); 
             } else { 
@@ -1317,29 +1385,39 @@
             const u = document.getElementById('loginUsername').value.trim();
             const p = document.getElementById('loginPassword').value.trim();
             
-            if (!u || !p) { 
-                showToast("請輸入完整的帳號密碼喔。", "error"); 
-                return; 
-            }
+            if (!u || !p) { showToast("請輸入完整的帳號密碼喔。", "error"); return; }
 
             const userAccount = accountsData.find(acc => acc.username === u && acc.password === p);
 
             if (userAccount) {
                 isAdmin = true; 
-                currentAdminId = userAccount.id;
+                currentAdminAccount = userAccount;
                 closeModal('loginModal'); 
                 updateAuthUI(); 
-                showToast(`歡迎回來，${userAccount.username} 店長！`);
+                showToast(`歡迎回來，${userAccount.username}！`);
             } else { 
                 showToast("帳號或密碼好像不對喔！", "error"); 
             }
         };
 
         const updateAuthUI = () => {
-            document.getElementById('authText').innerText = isAdmin ? "店長登出" : "店長登入";
+            document.getElementById('authText').innerText = isAdmin ? "登出" : "店長登入";
             document.getElementById('authIcon').className = isAdmin ? "ph-light ph-sign-out text-rose-400 text-lg" : "ph-light ph-user text-lg";
             document.getElementById('adminToolbar').classList.toggle('hidden', !isAdmin);
             document.getElementById('editTitleBtn').classList.toggle('hidden', !isAdmin);
+            
+            if (isAdmin && currentAdminAccount) {
+                const roleText = isSuperAdmin() ? '總店長管理區' : '協作者管理區';
+                document.getElementById('welcomeAdminRole').innerText = roleText;
+                
+                if (isSuperAdmin()) {
+                    document.getElementById('btnAccountsManage').classList.remove('hidden');
+                    document.getElementById('btnAccountsManage').classList.add('sm:flex');
+                } else {
+                    document.getElementById('btnAccountsManage').classList.add('hidden');
+                    document.getElementById('btnAccountsManage').classList.remove('sm:flex');
+                }
+            }
             
             renderItems();
             if (isAdmin) {
@@ -1357,7 +1435,7 @@
             document.getElementById('itemModal').classList.remove('hidden'); 
         };
 
-        // --- 帳號與協作者管理 (沿用) ---
+        // --- 帳號管理 ---
         const openAccountsModal = () => {
             renderAccountsList();
             document.getElementById('accountsListModal').classList.remove('hidden');
@@ -1368,18 +1446,20 @@
             if (!accountsData || accountsData.length === 0) return;
             
             tbody.innerHTML = accountsData.map(acc => {
-                const isMe = acc.id === currentAdminId;
+                const isMe = currentAdminAccount && acc.id === currentAdminAccount.id;
+                const roleName = acc.role === 'superadmin' || acc.username === 'admin' ? '<span class="text-amber-600 font-bold"><i class="ph-fill ph-crown mr-1"></i>總店長</span>' : '<span class="text-sky-600">一般協作者</span>';
+                
                 return `
                 <tr class="hover:bg-white/50 transition-colors">
                     <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-nature-text">
                         ${acc.username} ${isMe ? '<span class="ml-2 text-[10px] bg-nature-sky_dark text-sky-900 px-2 py-0.5 rounded-full shadow-sm">自己</span>' : ''}
                     </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-nature-text_light font-mono font-bold tracking-widest">
-                        ${acc.password}
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-nature-text_light font-bold">
+                        ${roleName}
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap text-right text-sm">
-                        <button onclick="openAccountEditModal('${acc.id}')" class="text-amber-500 hover:text-amber-600 bg-white shadow-sm border border-slate-100 p-1.5 rounded-full mr-1 transition-all" title="修改密碼"><i class="ph-light ph-pencil-simple text-base"></i></button>
-                        ${!isMe ? `<button onclick="promptDeleteAccount('${acc.id}')" class="text-rose-400 hover:text-rose-500 bg-white shadow-sm border border-slate-100 p-1.5 rounded-full transition-all" title="刪除"><i class="ph-light ph-trash text-base"></i></button>` : ''}
+                        <button onclick="openAccountEditModal('${acc.id}')" class="text-amber-500 hover:text-amber-600 bg-white shadow-sm border border-slate-100 p-1.5 rounded-full mr-1 transition-transform hover:scale-110" title="修改密碼"><i class="ph-light ph-pencil-simple text-base"></i></button>
+                        ${!isMe ? `<button onclick="promptDeleteAccount('${acc.id}')" class="text-rose-400 hover:text-rose-500 bg-white shadow-sm border border-slate-100 p-1.5 rounded-full transition-transform hover:scale-110" title="刪除"><i class="ph-light ph-trash text-base"></i></button>` : ''}
                     </td>
                 </tr>`;
             }).join('');
@@ -1426,7 +1506,7 @@
                     showToast("密碼修改成功！");
                 } else {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), {
-                        username: u, password: p, role: 'admin', createdAt: serverTimestamp()
+                        username: u, password: p, role: 'collaborator', createdAt: serverTimestamp()
                     });
                     showToast("新增協作者成功！");
                 }
@@ -1471,7 +1551,8 @@
             toggleAuth, checkLogin, closeModal, 
             openItemModal, editItem, saveItem, promptDelete, confirmDelete, 
             addToCart, updateCartQty, removeCartItem, openCartModal, submitCheckout,
-            openOrdersModal, handleSearch, exportOrdersToExcel,
+            openOrdersModal, handleSearch, renderOrdersList, exportOrdersToExcel,
+            openOrderEditModal, saveOrderEdit, promptDeleteOrder, confirmDeleteOrder,
             openTitleModal, saveWebsiteTitle, openMissionModal, saveMissionSettings,
             openAccountsModal, openAccountEditModal, saveAccount, promptDeleteAccount, confirmDeleteAccount
         });
