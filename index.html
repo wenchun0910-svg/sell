@@ -260,29 +260,46 @@
             <button onclick="closeModal('missionModal')" class="absolute top-4 right-4 text-nature-text_light hover:text-rose-400 bg-white p-1.5 rounded-full shadow-sm transition-colors z-10">
                 <i class="ph-light ph-x text-xl"></i>
             </button>
-            <div class="story-header mb-6">
+            <div class="story-header mb-5">
                 <span class="story-header-sub">Campaign Settings</span>
                 <h2 class="font-cursive text-3xl text-nature-forest flex items-center mt-1">
                     <i class="ph-light ph-flag text-amber-500 mr-2"></i> 購物任務設定
                 </h2>
             </div>
             
-            <div class="space-y-4">
-                <div>
-                    <label class="block font-semibold text-nature-text_light text-xs mb-1">設定目前開放的購物任務名稱 <span class="text-rose-400">*</span></label>
-                    <input type="text" id="missionNameInput" class="input-story bg-white" placeholder="例如：六月團購任務、夏季出清大作戰...">
-                    <p class="text-[10px] text-nature-text_light mt-1.5">顧客的訂單都會被標記為此任務名稱，方便您後續分類匯出。</p>
-                </div>
-
-                <div class="bg-white/50 border border-white shadow-sm p-4 rounded-xl flex items-center justify-between">
+            <div class="space-y-3">
+                <div class="bg-white/50 border border-white shadow-sm p-3 rounded-xl flex items-center justify-between">
                     <div>
-                        <p class="font-bold text-sm text-nature-forest">開放顧客下單</p>
-                        <p class="text-[11px] text-nature-text_light">關閉時，顧客只能看商品無法加入購物車</p>
+                        <p class="font-bold text-sm text-nature-forest">啟用此購物任務</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="missionStatusToggle" class="sr-only peer">
-                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-nature-grass_dark shadow-inner"></div>
+                        <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-nature-grass_dark shadow-inner"></div>
                     </label>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">任務名稱 <span class="text-rose-400">*</span></label>
+                    <input type="text" id="missionNameInput" class="input-story bg-white text-sm py-1.5" placeholder="例如：夏季出清大作戰...">
+                    <p class="text-[10px] text-nature-text_light mt-1">顧客的訂單都會被標記為此任務名稱。</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-nature-text_light text-xs mb-1">開始時間 (可不填)</label>
+                        <input type="datetime-local" id="missionStartTime" class="input-story bg-white text-xs py-1.5">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-nature-text_light text-xs mb-1">結束時間 (可不填)</label>
+                        <input type="datetime-local" id="missionEndTime" class="input-story bg-white text-xs py-1.5">
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <label class="block font-semibold text-nature-text_light text-xs mb-1">選擇上架商品 (打勾代表開放購買)</label>
+                    <div id="missionItemsChecklist" class="bg-white/80 border border-white shadow-inner rounded-xl p-2 max-h-32 overflow-y-auto space-y-1 custom-scrollbar">
+                        <!-- Dynamic checkboxes injected here -->
+                    </div>
                 </div>
 
                 <div class="pt-2">
@@ -653,7 +670,7 @@
         let firebaseApp, auth, db, currentUser;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-storybook-app';
         
-      const firebaseConfig = {
+         const firebaseConfig = {
   apiKey: "AIzaSyCXZpd2BzuDe-jaKA2sClziAjnDhZLAWdM",
   authDomain: "sell-7cf41.firebaseapp.com",
   projectId: "sell-7cf41",
@@ -676,11 +693,15 @@
             title: '可愛物品訂購小舖',
             missionName: '',
             isMissionOpen: false,
+            missionStartTime: '',
+            missionEndTime: '',
+            activeItemIds: [],
             creatorId: null // 記錄開啟任務的協作者 ID
         }; 
 
         // 購物車資料
         let cart = []; 
+        let lastMissionStateStr = ''; // 用於自動刷新檢查
 
         const initSystem = async () => {
             try {
@@ -767,16 +788,49 @@
             const statusText = document.getElementById('missionStatusText');
             const icon = document.getElementById('missionIcon');
             
-            if (globalSettings.isMissionOpen) {
+            const state = getMissionState();
+
+            if (state.active) {
                 banner.className = "bg-green-50/90 backdrop-blur-sm border-b border-white shadow-sm";
                 icon.className = "ph-fill ph-storefront text-green-500 text-xl";
-                statusText.innerHTML = `購物任務開放中：<span class="font-bold text-green-700 ml-1 bg-white px-2 py-0.5 rounded-full border border-green-100">${globalSettings.missionName || '未命名任務'}</span>`;
+                statusText.innerHTML = `<span class="text-green-700 font-bold">${state.message}</span>`;
             } else {
                 banner.className = "bg-rose-50/90 backdrop-blur-sm border-b border-white shadow-sm";
                 icon.className = "ph-fill ph-lock-key text-rose-400 text-xl";
-                statusText.innerHTML = `<span class="text-rose-600">目前未開放購物</span> <span class="text-xs text-rose-400 ml-2 font-normal">(僅供瀏覽商品)</span>`;
+                statusText.innerHTML = `<span class="text-rose-600 font-bold">${state.message}</span> <span class="text-xs text-rose-400 ml-2 font-normal">(僅供瀏覽)</span>`;
             }
         };
+
+        // 判斷任務是否進行中的邏輯
+        const getMissionState = () => {
+            if (!globalSettings.isMissionOpen) {
+                return { active: false, status: 'closed', message: '目前未啟用購物任務 (系統關閉)' };
+            }
+            
+            const now = new Date().getTime();
+            const start = globalSettings.missionStartTime ? new Date(globalSettings.missionStartTime).getTime() : 0;
+            const end = globalSettings.missionEndTime ? new Date(globalSettings.missionEndTime).getTime() : Infinity;
+
+            if (start && now < start) {
+                return { active: false, status: 'upcoming', message: `任務將於 ${new Date(start).toLocaleString('zh-TW', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'})} 開放` };
+            }
+            if (end && now > end) {
+                return { active: false, status: 'ended', message: '購物任務已結束' };
+            }
+            
+            return { active: true, status: 'open', message: `購物任務開放中：<span class="bg-white px-2 py-0.5 rounded-full border border-green-100 ml-1">${globalSettings.missionName || '未命名任務'}</span>` };
+        };
+
+        // 定期檢查任務時間，若狀態改變則重新渲染畫面
+        setInterval(() => {
+            const currentStateStr = getMissionState().status;
+            if (lastMissionStateStr !== '' && lastMissionStateStr !== currentStateStr) {
+                updateGlobalUI();
+                renderItems();
+                if(!getMissionState().active) { cart = []; updateCartBadge(); }
+            }
+            lastMissionStateStr = currentStateStr;
+        }, 5000);
 
         const openTitleModal = () => {
             document.getElementById('editWebsiteTitle').value = globalSettings.title;
@@ -796,12 +850,33 @@
         const openMissionModal = () => {
             document.getElementById('missionNameInput').value = globalSettings.missionName || '';
             document.getElementById('missionStatusToggle').checked = globalSettings.isMissionOpen;
+            document.getElementById('missionStartTime').value = globalSettings.missionStartTime || '';
+            document.getElementById('missionEndTime').value = globalSettings.missionEndTime || '';
+            
+            const checklist = document.getElementById('missionItemsChecklist');
+            if (itemsData.length === 0) {
+                checklist.innerHTML = '<p class="text-xs text-nature-text_light p-2">目前沒有商品，請先上架商品。</p>';
+            } else {
+                const activeIds = globalSettings.activeItemIds || [];
+                checklist.innerHTML = itemsData.map(item => `
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer transition-colors border border-transparent hover:border-slate-100">
+                        <input type="checkbox" value="${item.id}" class="mission-item-cb form-checkbox h-4 w-4 text-nature-grass_dark rounded border-slate-300 focus:ring-0" ${activeIds.includes(item.id) ? 'checked' : ''}>
+                        <span class="text-xs font-bold text-nature-text truncate flex-1" title="${item.title}">${item.title}</span>
+                    </label>
+                `).join('');
+            }
+
             document.getElementById('missionModal').classList.remove('hidden');
         };
 
         const saveMissionSettings = async () => {
             const name = document.getElementById('missionNameInput').value.trim();
             const isOpen = document.getElementById('missionStatusToggle').checked;
+            const start = document.getElementById('missionStartTime').value;
+            const end = document.getElementById('missionEndTime').value;
+            
+            const checkedBoxes = document.querySelectorAll('.mission-item-cb:checked');
+            const activeItemIds = Array.from(checkedBoxes).map(cb => cb.value);
 
             if (isOpen && !name) {
                 showToast("開啟任務必須填寫任務名稱喔！", "error");
@@ -812,12 +887,18 @@
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { 
                     missionName: name,
                     isMissionOpen: isOpen,
+                    missionStartTime: start,
+                    missionEndTime: end,
+                    activeItemIds: activeItemIds,
                     creatorId: currentAdminAccount ? currentAdminAccount.id : null
                 }, { merge: true });
-                closeModal('missionModal');
-                showToast(isOpen ? "購物任務已開放！" : "已關閉購物功能。");
                 
-                if(!isOpen) { cart = []; updateCartBadge(); }
+                closeModal('missionModal');
+                
+                const state = getMissionState();
+                showToast(state.active ? "購物任務已開放！" : "任務設定已儲存 (目前未在開放時間內)。");
+                
+                if(!state.active) { cart = []; updateCartBadge(); }
             } catch (e) { showToast("儲存失敗", "error"); }
         };
 
@@ -840,6 +921,12 @@
                 );
             }
 
+            // 非管理員只顯示目前任務中有打勾的商品
+            const activeIds = globalSettings.activeItemIds || [];
+            if (!isAdmin) {
+                filteredData = filteredData.filter(item => activeIds.includes(item.id));
+            }
+
             if (filteredData.length === 0) {
                 document.getElementById('emptyState').classList.remove('hidden');
             } else {
@@ -854,16 +941,27 @@
                 sortedData.forEach(item => {
                     const isOutOfStock = parseInt(item.stock) <= 0;
                     const itemPrice = item.price || item.points || 0; 
+                    const isItemActive = activeIds.includes(item.id);
+                    const state = getMissionState();
                     
-                    const stockBadge = isOutOfStock 
-                        ? `<span class="bg-rose-100 text-rose-600 border border-white px-2.5 py-1 rounded-full text-[11px] font-bold absolute top-3 left-3 shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-prohibit mr-1"></i> 已售完</span>`
-                        : `<span class="bg-green-100 text-green-700 border border-white px-2.5 py-1 rounded-full text-[11px] font-bold absolute top-3 left-3 shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-check-circle mr-1"></i> 庫存剩餘: ${item.stock}</span>`;
+                    const badgesHtml = `
+                        <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                            ${isAdmin && !isItemActive ? `<span class="bg-slate-600/90 text-white border border-white/50 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-eye-slash mr-1"></i> 未上架</span>` : ''}
+                            ${isOutOfStock 
+                                ? `<span class="bg-rose-100/90 text-rose-600 border border-white/50 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-prohibit mr-1"></i> 已售完</span>`
+                                : `<span class="bg-green-100/90 text-green-700 border border-white/50 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm flex items-center backdrop-blur-md"><i class="ph-fill ph-check-circle mr-1"></i> 庫存剩餘: ${item.stock}</span>`}
+                        </div>
+                    `;
 
                     let orderBtnClass, orderBtnText, orderBtnDisabled;
 
-                    if (!globalSettings.isMissionOpen) {
+                    if (!state.active) {
                         orderBtnClass = "bg-slate-100 text-slate-400 cursor-not-allowed border border-white";
-                        orderBtnText = "尚未開放購買";
+                        orderBtnText = state.status === 'upcoming' ? "尚未開放" : (state.status === 'ended' ? "任務已結束" : "未開放購物");
+                        orderBtnDisabled = "disabled";
+                    } else if (!isItemActive) {
+                        orderBtnClass = "bg-slate-100 text-slate-400 cursor-not-allowed border border-white";
+                        orderBtnText = "未參與此任務";
                         orderBtnDisabled = "disabled";
                     } else if (isOutOfStock) {
                         orderBtnClass = "bg-slate-100 text-slate-400 cursor-not-allowed border border-white";
@@ -888,12 +986,12 @@
                             <button onclick="promptDelete('${item.id}'); event.preventDefault();" class="bg-white/90 text-rose-400 p-2 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-white hover:bg-white transition-all hover:scale-110" title="刪除"><i class="ph-light ph-trash text-base"></i></button>
                         </div>` : '';
 
-                    let imgWrapperStart = `<div class="image-container relative w-full pt-[85%] bg-white border-b border-white group/img cursor-default">`;
+                    let imgWrapperStart = `<div class="image-container relative w-full pt-[85%] bg-white border-b border-white group/img cursor-default ${isAdmin && !isItemActive ? 'opacity-60 grayscale-[30%]' : ''}">`;
                     let imgWrapperEnd = `</div>`;
                     let hoverOverlay = '';
                     
                     if (item.folderUrl) {
-                        imgWrapperStart = `<a href="${item.folderUrl}" target="_blank" class="image-container relative w-full pt-[85%] bg-white border-b border-white group/img cursor-pointer block">`;
+                        imgWrapperStart = `<a href="${item.folderUrl}" target="_blank" class="image-container relative w-full pt-[85%] bg-white border-b border-white group/img cursor-pointer block ${isAdmin && !isItemActive ? 'opacity-60 grayscale-[30%]' : ''}">`;
                         imgWrapperEnd = `</a>`;
                         hoverOverlay = `
                             <div class="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 z-10">
@@ -912,7 +1010,7 @@
                                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCA4MDAgNjAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmYWZjIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJDYXZlYXQsIGN1cnNpdmUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjOTRhM2I4IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7nhKHniYfmlpnkvpvoiaw8L3RleHQ+PC9zdmc+';" 
                                  class="absolute top-0 left-0 w-full h-full object-cover">
                             ${hoverOverlay}
-                            ${stockBadge}
+                            ${badgesHtml}
                         ${imgWrapperEnd}
                         <div class="p-5 flex-grow flex flex-col bg-white/40">
                             <h3 class="font-bold text-lg text-nature-forest line-clamp-1 mb-1">${item.title}</h3>
@@ -952,7 +1050,10 @@
         };
 
         const addToCart = (id) => {
-            if (!globalSettings.isMissionOpen) return;
+            if (!getMissionState().active) {
+                showToast("目前未開放購物喔！", "error");
+                return;
+            }
 
             const item = itemsData.find(p => p.id === id);
             if (!item || item.stock <= 0) return;
@@ -979,7 +1080,7 @@
         };
 
         const openCartModal = () => {
-            if (!globalSettings.isMissionOpen) {
+            if (!getMissionState().active) {
                 showToast("目前未開放購物，無法結帳喔！", "error");
                 return;
             }
@@ -1053,7 +1154,11 @@
 
         const submitCheckout = async (event) => {
             event.preventDefault();
-            if (!currentUser || cart.length === 0 || !globalSettings.isMissionOpen) return;
+            if (!currentUser || cart.length === 0) return;
+            if (!getMissionState().active) {
+                showToast("目前未開放購物，無法結帳喔！", "error");
+                return;
+            }
 
             const buyerName = document.getElementById('orderBuyerName').value.trim();
             const buyerPhone = document.getElementById('orderBuyerPhone').value.trim();
